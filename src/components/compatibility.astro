@@ -2,7 +2,23 @@
 import CompatibilityList from "~/components/compatibility-list.astro";
 import ContentSection from "~/components/content-section.astro";
 import type { CompatibilityItem } from "~/types";
+import { getCollection } from "astro:content";
+import ShowcaseCard from "~/components/showcase-card.astro";
+import SimpleShowcaseCard from "~/components/SimpleShowcaseCard.astro";
+// Replace this with your image imports
+import image1 from "~/content/showcase/_images/Passport-Couriers-iconPink2.png"; 
+import image2 from "~/content/showcase/_images/Fragile-Items-Courier-iconPink2.png";
+import image3 from "~/content/showcase/_images/Letter-Document-Legal-iconPink.png";
+import image4 from "~/content/showcase/_images/Event-Exhibition-Couriers-iconPink.png";
+import image5 from "~/content/showcase/_images/Emergency-Courier-Service-iconPink.png";
 
+const featuredSites = await getCollection(
+  "showcase",
+  ({ data }) => "featured" in data,
+);
+const orderedSites = featuredSites.sort(
+  (a, b) => a.data.featured! - b.data.featured!,
+);
 const frameworks: Array<CompatibilityItem> = [
   {
     title: "React",
@@ -35,7 +51,38 @@ const frameworks: Array<CompatibilityItem> = [
     url: "https://lit.dev/",
   },
 ];
-
+const showcaseItems = [
+  { 
+    title: "Passport Courriers",
+    description: "You've meticulously planned that dream vacation or crucial business trip. Panic sets in at the airport – your passport is missing! Don't let a forgotten passport derail your plans. Breathe, and call Arktos Deliveries – your passport courier solution.",
+    imagePath: image1,
+    link: "#", 
+  },
+  { 
+    title: "Fragile Items",
+    description: "Need fast, secure delivery for your fragile items? Arktos Deliveries provides dedicated vehicles and drivers, ensuring your valuables are transported with the utmost care, directly to their destination. No unnecessary detours, no shared vans – just peace of mind.",
+    imagePath: image2,
+    link: "#", 
+  },
+  { 
+    title: "Letter, Document & Legal",
+    description: "Need important documents delivered same-day? Our dedicated courier service ensures swift, trackable delivery with in-person handoff, surpassing standard postal options.",
+    imagePath: image3,
+    link: "#", 
+  },
+  { 
+    title: "Event & Exhibition",
+    description: "Urgent event or exhibition delivery in the UK? We offer same-day courier service with 60-minute pickup, ensuring your merchandise, equipment, or other materials arrive securely and on time. Backed by stellar TrustPilot reviews, we're your reliable event logistics partner.",
+    imagePath: image4,
+    link: "#", 
+  },
+  { 
+    title: "Emergency Courriers",
+    description: "Need something delivered urgently in the UK? Our trusted, same-day courier service offers 60-minute pickup and guarantees secure, on-time delivery for your time-sensitive items. Check out our excellent TrustPilot reviews!",
+    imagePath: image5,
+    link: "#", 
+  },
+]; 
 const platforms: Array<CompatibilityItem> = [
   {
     title: "Netlify",
@@ -68,52 +115,90 @@ const platforms: Array<CompatibilityItem> = [
     url: "https://docs.gitlab.com/ee/user/project/pages/",
   },
 ];
+// const services = [
+//   {
+//     title: "Passport Couriers",
+//     description: "Many of us have done it, and if we haven’t done it then we fear doing it… You’ve looked forward to that family holiday all year, or you’ve been preparing for weeks for that continental business trip. The morning arrives of your flight and you set out to the airport. You get there and realise you are missing the vital thing – your passport. You start to panic and wonder whether your trip will be lost. Panicking is the worst thing you can do! Stop, think rationally, and think Rock Solid Deliveries, who provide a forgotten passport courier service."
+//   },
+//   {
+//     title: "Fragile Items Courier",
+//     description: "Need fast, secure delivery for your fragile items? Rock Solid Deliveries provides dedicated vehicles and drivers, ensuring your valuables are transported with the utmost care, directly to their destination. No unnecessary detours, no shared vans – just peace of mind."
+//   },
+//   {
+//     title: "Letter, Document & Legal",
+//     description: "Need important documents delivered same-day? Our dedicated courier service ensures swift, trackable delivery with in-person handoff, surpassing standard postal options."
+//   },
+//   {
+//     title: "Event & Exhibition Couriers",
+//     description: "Urgent event or exhibition delivery in the UK? We offer same-day courier service with 60-minute pickup, ensuring your merchandise, equipment, or other materials arrive securely and on time. Backed by stellar TrustPilot reviews, we're your reliable event logistics partner."
+//   },
+//   {
+//     title: "Emergency Courier Service",
+//     description: "Need something delivered urgently in the UK? Our trusted, same-day courier service offers 60-minute pickup and guarantees secure, on-time delivery for your time-sensitive items. Check out our excellent TrustPilot reviews!"
+//   },
+// ];
 ---
 
 <ContentSection title="Our Services" id="compatibility">
   <Fragment slot="lead">
     A comprehensive <span class="text-primary">breakdown</span> of the services offered by{" "}
     <span class="text-primary">Arknet Logistics</span>.
-    <!-- and deploy to your favorite <span class="text-primary">platform</span>. -->
   </Fragment>
-  <!-- Passport Couriers Section -->
-<div class="service-section" id="passport-couriers">
-  <h3>Passport Couriers</h3>
-  <p>Are you looking for a passport courier that can save your trip and get your passport to you in quick time? Rock Solid Deliveries are just what you are looking for! Many of us have done it, and if ...</p>
-</div>
 
-<!-- Fragile Items Courier Section -->
-<div class="service-section" id="fragile-items-courier">
-  <h3>Fragile Items Courier</h3>
-  <p>Rock Solid Deliveries are a leading company who specialise in fragile courier services. If you need a fragile items courier who can transport your goods quickly without the risk of damaging the items, ...</p>
-</div>
-
-<!-- Letter, Document & Legal Section -->
-<div class="service-section" id="letter-document-legal">
-  <h3>Letter, Document & Legal</h3>
-  <p>Are you looking for same day letter delivery of important documents? How does our same day letter courier, or legal document service work? Our same day letter delivery is different to that of ...</p>
-</div>
-
-<!-- Event & Exhibition Couriers Section -->
-<div class="service-section" id="event-exhibition-couriers">
-  <h3>Event & Exhibition Couriers</h3>
-  <p>Are you heading to an event or exhibition and need something delivering? Look no further than Rock Solid Deliveries who are your trusted and experienced event couriers. We understand business ...</p>
-</div>
-
-<!-- Emergency Courier Service Section -->
-<div class="service-section" id="emergency-courier-service">
-  <h3>Emergency Courier Service</h3>
-  <p>As your emergency courier we know that you have called us to help you out in your hour of need. This means as soon as we receive your call, we dispatch one of our drivers immediately. The driver will ...</p>
-</div>
-
-  <!-- <CompatibilityList
-    items={frameworks}
-    title="Frameworks"
-    url="https://docs.astro.build/core-concepts/framework-components/"
-  />
-  <CompatibilityList
-    items={platforms}
-    title="Platforms"
-    url="https://docs.astro.build/guides/deploy/"
-  /> -->
+  <div class="max-w-6xl space-y-2">
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {showcaseItems.slice(0, 3).map((item) => (
+        <SimpleShowcaseCard
+          title={item.title}
+          description={item.description}
+          imagePath={item.imagePath}
+          link={item.link}
+        />
+      ))}
+    </div>
+    <div class="lg:flex lg:justify-center mt-4 lg:mt-0">
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-2 w-full lg:w-[66.666%]">
+        {showcaseItems.slice(3).map((item) => (
+          <SimpleShowcaseCard
+            title={item.title}
+            description={item.description}
+            imagePath={item.imagePath}
+            link={item.link}
+          />
+        ))}
+      </div>
+    </div>
+  </div>
 </ContentSection>
+
+<!-- <script>
+function openPopup(button: HTMLButtonElement) {
+    const popupId = button.dataset.target; 
+    if (popupId) { 
+      const popup: HTMLElement | null = document.getElementById(popupId);
+      if (popup) {
+        popup.style.display = "block";
+      }
+    }
+  }
+  function closePopup(button: HTMLElement) {
+    const popup = button.parentElement?.parentElement; // Use optional chaining
+    if (popup) {
+      popup.style.display = "none";
+    }
+  }
+  const serviceButtons = document.querySelectorAll(".service-button") as NodeListOf<HTMLButtonElement>; 
+  serviceButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      openPopup(button);
+    });
+
+  });
+
+  const closeButtons = document.querySelectorAll(".close-button") as NodeListOf<HTMLButtonElement>; ;
+    closeButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        closePopup(button);
+      });
+    });
+</script> -->
