@@ -15,7 +15,7 @@ const navItems: Array<NavItem> = [
   class="absolute bottom-0 z-20 flex w-full items-center justify-between border-b border-transparent px-8 py-4 text-white"
 >
   <a class="flex items-center gap-3 hover:!text-default" href="#">
-    <h1 class="sr-only">Astro</h1>
+    <h1 class="sr-only">Arknet</h1>
     <Icon name="arknetAlogo" class="size-10" />
     <Icon name="arknetnolog" class="hidden h-4 sm:block" />
   </a>
@@ -26,7 +26,7 @@ const navItems: Array<NavItem> = [
           {
             navItems.map(({ title, url }) => (
               <li>
-                <a class="text-sm" href={url}>
+                <a class="text-lg font-normal py-2 px-3" href={url}>
                   {title}
                 </a>
               </li>
@@ -134,5 +134,8 @@ const navItems: Array<NavItem> = [
   }
   .modal.is-open {
     @apply block;
+  }
+  nav a {
+    @apply text-lg font-normal py-2 px-4;
   }
 </style>
