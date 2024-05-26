@@ -6,6 +6,7 @@
   --color-background: theme("colors.gray.50");
   --color-background-offset: theme("colors.gray.100");
   --color-border: theme("colors.gray.900" / 10%);
+  --icon-color: var(--color-text); /* Add this line */
 }
 
 [data-theme="dark"] {
@@ -16,4 +17,6 @@
   --color-background: theme("colors.gray.900");
   --color-background-offset: theme("colors.gray.800");
   --color-border: theme("colors.gray.50" / 10%);
+  --icon-color: var(--color-text); /* Add this line */
+
 }

@@ -4,28 +4,34 @@ import ContentSection from "~/components/content-section.astro";
 ---
 
 <ContentSection title="Delivering Confidence" id="intro">
-  <Icon slot="eyebrow" name="logomark" class="size-32" />
+  <Icon slot="eyebrow" name="arknetAlogo" class="size-32 text-icon-color" />
   <Fragment slot="lead">
-    Arknet is a logisitics firm where
+    Arknet is a logistics firm where
     <span class="text-primary">lightning-fast</span> performance
     meets 
-    <span class="text-primary">reliability </span> and
+    <span class="text-primary">reliability</span> and
     <span class="text-primary">trust</span>.
   </Fragment>
   <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
     <a
-      href="https://docs.astro.build/"
+      href="tel:+1234567890"  
       class="flex items-center justify-center gap-3 border-2 border-current px-6 py-4"
     >
       <Icon name="mdi:phone" class="size-8" />
       <span>Call Us</span>
     </a>
     <a
-      href="https://astro.new/"
+      href="mailto:arknetlogistics@outlook.com"
       class="flex items-center justify-center gap-3 border-2 border-current px-6 py-4"
     >
       <Icon name="mdi:mail" class="size-8" />
-      <span>Email</span>
+      <span>arknetlogistics@outlook.com</span>
     </a>
   </div>
 </ContentSection>
+
+<style>
+  :global(.text-icon-color) {
+    color: var(--icon-color);
+  }
+</style>
