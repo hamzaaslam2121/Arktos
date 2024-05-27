@@ -113,3 +113,8 @@ a,
   font-size: 1.5rem;
   cursor: pointer;
 } */
+
+.simple-showcase-card {
+  width: 350px; /* Adjust width as needed */
+  height: 300px; /* Adjust height as needed */
+}

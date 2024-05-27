@@ -52,36 +52,66 @@ const frameworks: Array<CompatibilityItem> = [
   },
 ];
 const showcaseItems = [
-  { 
+{ 
     title: "Passport Courier",
-    description: "You've meticulously planned that dream vacation or crucial business trip. Panic sets in at the airport – your passport is missing! Don't let a forgotten passport derail your plans. Breathe, and call Arknet – your passport courier solution.",
+    description: "Don't let a missing passport derail your travel plans – Arknet is your passport courier solution.",
     imagePath: image1,
     link: "#", 
   },
   { 
     title: "Fragile Items",
-    description: "Need fast, secure delivery for your fragile items? Arknet Logistics provides dedicated vehicles and drivers, ensuring your valuables are transported with the utmost care, directly to their destination. No unnecessary detours, no shared vans – just peace of mind.",
+    description: "Need secure delivery for fragile items? Arknet Logistics provides dedicated vehicles and drivers for peace of mind.",
     imagePath: image2,
     link: "#", 
   },
   { 
     title: "Letter, Document & Legal",
-    description: "Need important documents delivered same-day? Our dedicated courier service ensures swift, trackable delivery with in-person handoff, surpassing standard postal options.",
+    description: "Need same-day delivery for important documents? Our dedicated courier service offers swift, trackable delivery with in-person handoff.",
     imagePath: image3,
     link: "#", 
   },
   { 
     title: "Event & Exhibition",
-    description: "Urgent event or exhibition delivery in the UK? We offer same-day courier service with 60-minute pickup, ensuring your merchandise, equipment, or other materials arrive securely and on time. We're your reliable event logistics partner.",
+    description: "Urgent event or exhibition delivery in the UK? We offer same-day courier service with 60-minute pickup for secure, on-time arrival.",
     imagePath: image4,
     link: "#", 
   },
   { 
     title: "Emergency Courriers",
-    description: "Need something delivered urgently in the UK? Our trusted, same-day courier service offers 60-minute pickup and guarantees secure, on-time delivery for your time-sensitive items.",
+    description: "Need something delivered urgently in the UK? Our trusted, same-day courier service offers 60-minute pickup and guarantees secure, on-time delivery.",
     imagePath: image5,
     link: "#", 
   },
+  // { 
+  //   title: "Passport Courier",
+  //   description: "You've meticulously planned that dream vacation or crucial business trip. Panic sets in at the airport – your passport is missing! Don't let a forgotten passport derail your plans. Breathe, and call Arknet – your passport courier solution.",
+  //   imagePath: image1,
+  //   link: "#", 
+  // },
+  // { 
+  //   title: "Fragile Items",
+  //   description: "Need fast, secure delivery for your fragile items? Arknet Logistics provides dedicated vehicles and drivers, ensuring your valuables are transported with the utmost care, directly to their destination. No unnecessary detours, no shared vans – just peace of mind.",
+  //   imagePath: image2,
+  //   link: "#", 
+  // },
+  // { 
+  //   title: "Letter, Document & Legal",
+  //   description: "Need important documents delivered same-day? Our dedicated courier service ensures swift, trackable delivery with in-person handoff, surpassing standard postal options.",
+  //   imagePath: image3,
+  //   link: "#", 
+  // },
+  // { 
+  //   title: "Event & Exhibition",
+  //   description: "Urgent event or exhibition delivery in the UK? We offer same-day courier service with 60-minute pickup, ensuring your merchandise, equipment, or other materials arrive securely and on time. We're your reliable event logistics partner.",
+  //   imagePath: image4,
+  //   link: "#", 
+  // },
+  // { 
+  //   title: "Emergency Courriers",
+  //   description: "Need something delivered urgently in the UK? Our trusted, same-day courier service offers 60-minute pickup and guarantees secure, on-time delivery for your time-sensitive items.",
+  //   imagePath: image5,
+  //   link: "#", 
+  // },
 ]; 
 const platforms: Array<CompatibilityItem> = [
   {
@@ -170,7 +200,11 @@ const platforms: Array<CompatibilityItem> = [
     </div>
   </div>
 </ContentSection>
-
+<style> /*  You can add this style tag or put it in your global CSS */
+  .max-w-6xl > div {
+    gap: 1rem; /* Adjust this value to control vertical spacing */
+  }
+</style>
 <!-- <script>
 function openPopup(button: HTMLButtonElement) {
     const popupId = button.dataset.target; 
