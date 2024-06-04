@@ -45,7 +45,7 @@ const { title, description, imagePath, link } = Astro.props;
     <Image
       src={imagePath}
       alt={title}
-      style="position: absolute; top: 5%; opacity: 0.1; transform: scale(0.7); width: 250px; height: 250px;" 
+      style="position: absolute; left: %; top: -15%; opacity: 0.1; transform: scale(0.4); width: 250px; height: 250px;" 
     />
     <div
       style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; opacity: 1; pointer-events: none;"
@@ -57,7 +57,7 @@ const { title, description, imagePath, link } = Astro.props;
           <!-- {title} -->
           {title.split(' ').map((word) => (
             <Fragment>
-              {word.toLowerCase() === 'courier:' || word.toLowerCase().includes('fragile') || word.toLowerCase().includes('document') || word.toLowerCase().includes('emergency') || word.toLowerCase().includes('exhibition')? 
+              {word.toLowerCase() === 'passport' || word.toLowerCase().includes('fragile') || word.toLowerCase().includes('document') || word.toLowerCase().includes('emergency') || word.toLowerCase().includes('exhibition')? 
                 <span class="text-primary">{word} </span> : 
                 <span>{word} </span>
               }
