@@ -11,6 +11,11 @@ a,
   @apply bg-gradient-to-br from-indigo-500 via-fuchsia-500 to-pink-500;
 }
 
+.policy-link {
+  margin-left: 10px;
+}
+
+
 /* .service-section:hover {
 }
 .services-container {
