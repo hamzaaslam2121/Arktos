@@ -1,5 +1,13 @@
 /* TODO: consider creating <Button> and <GradientText> components */
 a,
+
+:root {
+  --base-font-size: 11px; /* Adjust this value to scale your website */
+}
+html {
+  font-size: var(--base-font-size);
+}
+
 .btn {
   @apply transition-colors duration-200;
   @apply hover:text-secondary;
@@ -14,6 +22,8 @@ a,
 .policy-link {
   margin-left: 10px;
 }
+
+
 
 
 /* .service-section:hover {
