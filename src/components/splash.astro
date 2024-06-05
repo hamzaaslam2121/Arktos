@@ -17,14 +17,13 @@ const sizes = "(min-width: 640px) 42vw, 67vw";
     <HeroImage />
   </div>
 
-  <div class="absolute top-1/5 left-0 right-0 z-10 mt-9 p-4 bg-black bg-opacity-0 text-white text-center" style="font-family: 'Gopher', sans-serif; font-style: normal; font-weight: 700;">
+  <div class="call-to-action absolute top-1/5 left-0 right-0 z-10 mt-9 p-4 bg-black bg-opacity-0 text-white text-center" style="font-family: 'Gopher', sans-serif; font-style: normal; font-weight: 700;">
     <a
       href="tel:+44 07899 819297"  
       class="flex items-center justify-center gap-3 border-0 border-current px-5 py-4"
-      style="font-family: 'Gopher', sans-serif; font-style: normal; font-weight: 700; font-size: 20px;"
     >
-      <Icon name="mdi:phone" class="size-7" />
-      <span style="font-size: 28px;">Click me to call us at <span class="text-primary">07899 819297</span> or scroll down to get in touch via email!</span>
+      <Icon name="mdi:phone" class="phoneicon size-7" />
+      <span>Click me to call us at <span class="text-primary">07899 819297</span> or scroll down to get in touch via email!</span>
     </a>
   </div>
 
@@ -94,4 +93,26 @@ const sizes = "(min-width: 640px) 42vw, 67vw";
       @apply block;
     }
   }
+  .call-to-action span {
+    font-size: 30px; 
+  }
+  @media (max-width: 768px) { /* Adjust breakpoint as needed */
+  .call-to-action { /* Give the div a class for easier targeting */
+    top: 70%; /* Adjust positioning for smaller screens */
+    padding: 4rem 1rem; /* Reduce padding */
+  }
+  .call-to-action a {
+    flex-direction: column-reverse; /* Stack elements vertically */
+    gap: 1rem; /* Space between text and icon */
+  }
+  .call-to-action span {
+    font-size: 20px; 
+  }
+  .call-to-action .phoneicon { /* Target the icon directly */
+    display: block; /* Make sure icon is visible */
+    margin: 0 auto; /* Center the icon horizontally */
+  }
+  
+}
+
 </style>
