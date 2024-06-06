@@ -17,18 +17,19 @@ const sizes = "(min-width: 640px) 42vw, 67vw";
     <HeroImage />
   </div>
 
-  <div class="call-to-action absolute top-1/5 left-0 right-0 z-10 mt-9 p-4 bg-black bg-opacity-0 text-white text-center" style="font-family: 'Gopher', sans-serif; font-style: normal; font-weight: 700;">
+
+  <div class="call-to-action absolute top-1/5 left-0.5 right-0 z-10 bg-black bg-opacity-0 text-white text-center" style="font-family: 'Gopher', sans-serif; font-style: normal; font-weight: 700;">
     <a
       href="tel:+44 07899 819297"  
       class="flex items-center justify-center gap-3 border-0 border-current px-5 py-4"
     >
-      <Icon name="mdi:phone" class="phoneicon size-7" />
+      <Icon name="mdi:phone" class="phoneicon size-11" />
       <span>Get a  <span class="text-primary"> quote </span> by clicking me to call us at <span class="text-primary">07899 819297</span> or scroll down to get in touch via email!</span>
     </a>
   </div>
 
-
   <div class="relative grid h-full place-items-center sm:grid-cols-2">
+    
     <h2
       class="flex flex-col items-center gap-2 self-end sm:gap-4 sm:self-auto sm:justify-self-end"
     >
@@ -55,6 +56,7 @@ const sizes = "(min-width: 640px) 42vw, 67vw";
       />
     </div>
   </div>
+  
 </section>
 
 <noscript>
@@ -97,22 +99,34 @@ const sizes = "(min-width: 640px) 42vw, 67vw";
     font-size: 30px; 
   }
   @media (max-width: 768px) { /* Adjust breakpoint as needed */
-  .call-to-action { /* Give the div a class for easier targeting */
-    top: 70%; /* Adjust positioning for smaller screens */
-    padding: 4rem 1rem; /* Reduce padding */
-  }
+
   .call-to-action a {
     flex-direction: column-reverse; /* Stack elements vertically */
     gap: 1rem; /* Space between text and icon */
   }
   .call-to-action span {
-    font-size: 20px; 
+    font-size: 16px; 
   }
   .call-to-action .phoneicon { /* Target the icon directly */
     display: block; /* Make sure icon is visible */
     margin: 0 auto; /* Center the icon horizontally */
   }
-  
+  .call-to-action {
+    /* Use viewport height to position from the bottom */
+    bottom: 0vh; /* Adjust the value (e.g., 5vh, 15vh) for desired spacing */
+    left: 0; /* Ensure full width on mobile */
+    right: 0;
+
+    /* Use flexbox for vertical centering */
+    display: flex;
+    flex-direction: column; /* Stack elements vertically on mobile */
+    justify-content: flex-end; /* Align items to the end (bottom) */
+    align-items: center;
+    padding: 2rem 1rem; /* Maintain consistent padding */
+  }
+  #astronaut {
+    margin-top: -15vh; /* Adjust the negative margin value as needed */
+  }
 }
 
 </style>
