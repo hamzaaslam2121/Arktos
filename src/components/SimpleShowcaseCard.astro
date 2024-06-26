@@ -69,7 +69,7 @@ const { title, description, imagePath, link } = Astro.props;
           <!-- {description} -->
           {description.split(' ').map((word) => (
             <Fragment>
-              {word.toLowerCase() === 'arknet' || word.toLowerCase().includes('on-time') || word.toLowerCase().includes('logistics') || word.toLowerCase().includes('trackable') || word.toLowerCase().includes('on-time')? 
+              {word.toLowerCase() === 'arknet' || word.toLowerCase().includes('on-time') || word.toLowerCase().includes('Couriers') || word.toLowerCase().includes('trackable') || word.toLowerCase().includes('on-time')? 
                 <span class="text-primary">{word} </span> : 
                 <span>{word} </span>
               }
