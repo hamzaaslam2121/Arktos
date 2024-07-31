@@ -1,0 +1,25 @@
+---
+let data = null;
+
+const fetchData = async () => {
+  try {
+    // Use the local Worker URL when in development
+    const workerUrl = import.meta.env.DEV ? 'http://localhost:8787' : '';
+    const response = await fetch(`${workerUrl}/api/hello`);
+    data = await response.json();
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  }
+};
+
+await fetchData();
+---
+
+<div>
+  <h1>API Data</h1>
+  {data ? (
+    <pre>{JSON.stringify(data, null, 2)}</pre>
+  ) : (
+    <p>Loading...</p>
+  )}
+</div>

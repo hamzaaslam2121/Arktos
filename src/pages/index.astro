@@ -8,6 +8,8 @@ import Intro from "~/components/intro.astro";
 import Showcase from "~/components/showcase.astro";
 import Splash from "~/components/splash.astro";
 import "~/styles/index.css";
+import ApiComponent from '../components/ApiComponent.astro';
+
 
 const { generator, site } = Astro;
 const image = new URL("social.jpg", site);
@@ -39,6 +41,15 @@ const description =
     <meta property="og:url" content={site} />
     <meta name="twitter:card" content="summary_large_image" />
 
+    <html>
+  <head>
+    <title>Astro + Cloudflare Worker</title>
+  </head>
+  <body>
+    <h1>Welcome to My Astro App</h1>
+    <ApiComponent />
+  </body>
+</html>
     <!-- initialize theme -->
     <script is:inline>
       const themeSaved = localStorage.getItem("theme");
