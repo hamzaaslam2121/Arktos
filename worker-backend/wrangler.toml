@@ -4,11 +4,11 @@ main = "src/index.ts"
 compatibility_date = "2024-07-25"
 compatibility_flags = ["nodejs_compat"]
 
-account_id = "<your-cloudflare-account-id>"
+account_id = "7939b0fd79672cd02e8be513c9578de7"
 
 [env.production]
 route = "https://your-domain.com/*"
-zone_id = "<your-cloudflare-zone-id>"
+zone_id = "8910e020ac3ffa503d8409992961dc85"
 
 # Automatically place your workloads in an optimal location to minimize latency.
 # If you are running back-end logic in a Worker, running it closer to your back-end infrastructure
@@ -42,10 +42,10 @@ zone_id = "<your-cloudflare-zone-id>"
 
 # Bind a D1 database. D1 is Cloudflare’s native serverless SQL database.
 # Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#d1-databases
-# [[d1_databases]]
-# binding = "MY_DB"
-# database_name = "my-database"
-# database_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+[[d1_databases]]
+binding = "MY_DB"
+database_name = "arknet"
+database_id = "fe754be7-b3f6-4148-82cd-86b002c82e84"
 
 # Bind a dispatch namespace. Use Workers for Platforms to deploy serverless functions programmatically on behalf of your customers.
 # Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#dispatch-namespace-bindings-workers-for-platforms

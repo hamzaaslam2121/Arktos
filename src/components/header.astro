@@ -9,6 +9,10 @@ const navItems: Array<NavItem> = [
   { title: "Our Services", url: "#compatibility" },
   { title: "Locations", url: "#showcase" },
 ];
+
+const protectedNavItem: Array<NavItem> = [ 
+  { title: "Orders", url: "/orders/" }, 
+];
 ---
 
 <header
@@ -25,7 +29,7 @@ const navItems: Array<NavItem> = [
       <nav class="hidden sm:block">
         <ul class="flex items-center gap-6">
           {
-            navItems.map(({ title, url }) => (
+            navItems.map(({ title, url }) => ( 
               <li>
                 <a class="text-lg font-normal py-2 px-3" href={url}>
                   {title}
@@ -33,6 +37,17 @@ const navItems: Array<NavItem> = [
               </li>
             ))
           }
+          <SignedIn> {/* Orders link shown only when signed in */}
+            {
+              protectedNavItem.map(({ title, url }) => (
+                <li>
+                  <a class="text-lg font-normal py-2 px-3" href={url}>
+                    {title}
+                  </a>
+                </li>
+              ))
+            }
+          </SignedIn>
           <nav></nav>
           <li>
             <SignedOut>
@@ -61,7 +76,7 @@ const navItems: Array<NavItem> = [
                     },
                     variables: {
                     // Adjust global variables if available
-                    fontSize: "1.2",
+                    fontSize: "1.5",
                   },
                   },
                   
