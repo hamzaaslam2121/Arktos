@@ -1,18 +1,16 @@
-addEventListener('fetch', event => {
-	event.respondWith(handleRequest(event.request))
-  })
+export default {
+	async fetch(request: Request): Promise<Response> {
+	  const url = new URL(request.url);
   
-  async function handleRequest(request: Request): Promise<Response> {
-	const url = new URL(request.url)
-	
-	if (url.pathname.startsWith('/api')) {
-	  // Handle API routes
-	  return handleApiRequest(url.pathname, request)
+	  if (url.pathname.startsWith('/api')) {
+		// Handle API routes
+		return handleApiRequest(url.pathname, request);
+	  }
+  
+	  // Handle other requests (e.g., serving the static Astro site)
+	  return fetch(request);
 	}
-	
-	// Handle other requests (e.g., serving the static Astro site)
-	return fetch(request)
-  }
+  };
   
   async function handleApiRequest(pathname: string, request: Request): Promise<Response> {
 	// Example API route
@@ -25,6 +23,6 @@ addEventListener('fetch', event => {
 		},
 	  });
 	}
-	
+  
 	return new Response('Not Found', { status: 404 });
   }
