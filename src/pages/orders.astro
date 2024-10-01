@@ -1,4 +1,4 @@
----
+<!-- ---
 // src/pages/orders.astro
 import { Icon } from "astro-icon/components";
 import { SignedIn, SignedOut,  } from "@clerk/astro/components";
@@ -83,4 +83,103 @@ const orders = [
       <Icon name="mdi:login" class="text-gray-400 h-24 w-24 mx-auto mb-4" />
       <p>Please sign in to view your orders.</p>
     </div>
-  </SignedOut>
+  </SignedOut> -->
+
+
+  ---
+  interface Order {
+    user: number;
+    order: number;
+    stripe_price_id: string;
+    pickup: string;
+    destination: string;
+    price: number;
+    completed: number;
+    // Add any other fields that exist in your orders table
+  }
+  
+  let orders: Order[] = [];
+  let error: string | null = null;
+  let responseStatus: number | null = null;
+  let responseText: string | null = null;
+  
+  try {
+    const apiUrl = new URL('/api/orders', Astro.url);
+    console.log("Fetching from:", apiUrl.toString());
+    
+    const response = await fetch(apiUrl.toString());
+    responseStatus = response.status;
+    responseText = await response.text();
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    orders = JSON.parse(responseText);
+    console.log("Fetched orders:", orders);
+  
+    if (!Array.isArray(orders)) {
+      throw new Error("Received data is not an array");
+    }
+  } catch (e) {
+    console.error("Failed to fetch or process orders:", e);
+    error = "Failed to load orders. Please check the console for more details.";
+  }
+  ---
+  
+  <html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Orders</title>
+      <style>
+          table { border-collapse: collapse; width: 100%; }
+          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+          th { background-color: #f2f2f2; }
+      </style>
+  </head>
+  <body>
+      <h1>Orders</h1>
+      {error ? (
+          <div>
+              <p style="color: red;">{error}</p>
+              <p>Response Status: {responseStatus}</p>
+              <p>Response Text: {responseText}</p>
+          </div>
+      ) : orders.length > 0 ? (
+          <table>
+              <thead>
+                  <tr>
+                      <th>User</th>
+                      <th>Order</th>
+                      <th>Stripe Price ID</th>
+                      <th>Pickup</th>
+                      <th>Destination</th>
+                      <th>Price</th>
+                      <th>Completed</th>
+                      {/* Add more column headers as needed */}
+                  </tr>
+              </thead>
+              <tbody>
+                  {orders.map((order) => (
+                      <tr>
+                          <td>{order.user}</td>
+                          <td>{order.order}</td>
+                          <td>{order.stripe_price_id}</td>
+                          <td>{order.pickup}</td>
+                          <td>{order.destination}</td>
+                          <td>${order.price.toFixed(2)}</td>
+                          <td>{order.completed}</td>
+                          {/* Add more data cells for additional columns */}
+                      </tr>
+                  ))}
+              </tbody>
+          </table>
+      ) : (
+          <p>No orders found. The orders table might be empty.</p>
+      )}
+      <script define:vars={{ordersJson: JSON.stringify(orders)}}>
+          console.log('Orders:', ordersJson);
+      </script>
+  </body>
+  </html>
