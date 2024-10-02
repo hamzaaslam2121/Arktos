@@ -3,12 +3,12 @@
 // export dynamically through wrangler, or we can potentially let users directly
 // add them as a sort of "plugin" system.
 
-import ENTRY, { __INTERNAL_WRANGLER_MIDDLEWARE__ } from "C:\\Users\\44775\\Arktos2\\worker-backend\\.wrangler\\.wrangler\\tmp\\bundle-9xU0vM\\middleware-insertion-facade.js";
+import ENTRY, { __INTERNAL_WRANGLER_MIDDLEWARE__ } from "C:\\Users\\44775\\Arktos2\\worker-backend\\.wrangler\\.wrangler\\tmp\\bundle-tUsGvH\\middleware-insertion-facade.js";
 import { __facade_invoke__, __facade_register__, Dispatcher } from "C:\\Users\\44775\\AppData\\Roaming\\npm\\node_modules\\wrangler\\templates\\middleware\\common.ts";
-import type { WorkerEntrypointConstructor } from "C:\\Users\\44775\\Arktos2\\worker-backend\\.wrangler\\.wrangler\\tmp\\bundle-9xU0vM\\middleware-insertion-facade.js";
+import type { WorkerEntrypointConstructor } from "C:\\Users\\44775\\Arktos2\\worker-backend\\.wrangler\\.wrangler\\tmp\\bundle-tUsGvH\\middleware-insertion-facade.js";
 
 // Preserve all the exports from the worker
-export * from "C:\\Users\\44775\\Arktos2\\worker-backend\\.wrangler\\.wrangler\\tmp\\bundle-9xU0vM\\middleware-insertion-facade.js";
+export * from "C:\\Users\\44775\\Arktos2\\worker-backend\\.wrangler\\.wrangler\\tmp\\bundle-tUsGvH\\middleware-insertion-facade.js";
 
 class __Facade_ScheduledController__ implements ScheduledController {
 	readonly #noRetry: ScheduledController["noRetry"];

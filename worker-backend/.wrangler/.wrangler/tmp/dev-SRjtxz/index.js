@@ -1,4 +1,4 @@
-// .wrangler/.wrangler/tmp/bundle-9xU0vM/checked-fetch.js
+// .wrangler/.wrangler/tmp/bundle-tUsGvH/checked-fetch.js
 var urls = /* @__PURE__ */ new Set();
 function checkURL(request, init) {
   const url = request instanceof URL ? request : new URL(
@@ -86,6 +86,26 @@ async function handleApiRequest(pathname, request, env) {
       }
     });
   }
+  if (pathname === "/api/orders") {
+    try {
+      const { results } = await env.MY_DB.prepare("SELECT * FROM orders").all();
+      return new Response(JSON.stringify(results), {
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*"
+        }
+      });
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+      return new Response(JSON.stringify({ error: "Failed to fetch orders" }), {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*"
+        }
+      });
+    }
+  }
   return new Response("Not Found", { status: 404 });
 }
 
@@ -107,7 +127,7 @@ var drainBody = async (request, env, _ctx, middlewareCtx) => {
 };
 var middleware_ensure_req_body_drained_default = drainBody;
 
-// .wrangler/.wrangler/tmp/bundle-9xU0vM/middleware-insertion-facade.js
+// .wrangler/.wrangler/tmp/bundle-tUsGvH/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default
 ];
@@ -135,7 +155,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
   ]);
 }
 
-// .wrangler/.wrangler/tmp/bundle-9xU0vM/middleware-loader.entry.ts
+// .wrangler/.wrangler/tmp/bundle-tUsGvH/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;

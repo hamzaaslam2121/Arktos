@@ -5,7 +5,7 @@ interface Env {
 }
 
 interface QuoteData {
-	user: number;
+	user: string;
 	pickup: string;
 	destination: string;
 	price: number;
@@ -68,6 +68,7 @@ async function handleApiRequest(pathname: string, request: Request, env: Env): P
 		} else {
 		  throw new Error("Failed to insert the order");
 		}
+		
 	} catch (error) {
 		console.error("Error submitting quote:", error);
 		return new Response(JSON.stringify({ success: false, error: error instanceof Error ? error.message : String(error) }), {
@@ -90,7 +91,27 @@ async function handleApiRequest(pathname: string, request: Request, env: Env): P
       },
     });
   }
-
+  if (pathname === '/api/orders') {
+    try {
+      const { results } = await env.MY_DB.prepare("SELECT * FROM orders").all();
+      return new Response(JSON.stringify(results), {
+        headers: { 
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        },
+      });
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+      return new Response(JSON.stringify({ error: 'Failed to fetch orders' }), {
+        status: 500,
+        headers: { 
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        },
+      });
+    }
+  }
   // Default return for unmatched routes
   return new Response('Not Found', { status: 404 });
 }
+
