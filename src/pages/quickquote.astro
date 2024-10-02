@@ -1,0 +1,150 @@
+<div class="w-full max-w-3xl mx-auto bg-white rounded-lg shadow p-6">
+    <div class="mb-6">
+      <h2 class="text-2xl font-bold">PARCEL DELIVERY QUICK QUOTE</h2>
+      <p class="text-sm text-gray-600">
+        Simply enter your parcel details and destination to see the prices and services available.
+      </p>
+    </div>
+  
+    <form class="space-y-4" id="parcelForm">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium mb-1" for="pickup">Collection postcode:</label>
+          <input
+            type="text"
+            id="pickup"
+            placeholder="Enter collection postcode"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+            required
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1" for="destination">Delivery postcode:</label>
+          <input
+            type="text"
+            id="destination"
+            placeholder="Enter delivery postcode"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+            required
+          />
+        </div>
+      </div>
+  
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label class="block text-sm font-medium mb-1" for="weight">Weight (kg):</label>
+          <input
+            type="number"
+            id="weight"
+            placeholder="Enter weight"
+            step="0.1"
+            min="0"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+            required
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1" for="serviceLevel">Service Level:</label>
+          <select 
+            id="serviceLevel" 
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+            required
+          >
+            <option value="standard">Standard</option>
+            <option value="express">Express</option>
+            <option value="nextDay">Next Day</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1" for="shippingType">Shipping Type:</label>
+          <select 
+            id="shippingType" 
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+            required
+          >
+            <option value="parcel">Parcel</option>
+            <option value="document">Document</option>
+            <option value="pallet">Pallet</option>
+          </select>
+        </div>
+      </div>
+  
+      <div class="flex justify-end items-center pt-4">
+        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+          Get Quote & Book
+        </button>
+      </div>
+    </form>
+</div>
+  
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('parcelForm');
+      
+      if (!form) {
+        console.error('Form not found');
+        return;
+      }
+    
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+    
+        const pickupElement = document.getElementById('pickup') as HTMLInputElement | null;
+        const destinationElement = document.getElementById('destination') as HTMLInputElement | null;
+        const weightElement = document.getElementById('weight') as HTMLInputElement | null;
+        const serviceLevelElement = document.getElementById('serviceLevel') as HTMLSelectElement | null;
+        const shippingTypeElement = document.getElementById('shippingType') as HTMLSelectElement | null;
+    
+        if (!pickupElement || !destinationElement || !weightElement || !serviceLevelElement || !shippingTypeElement) {
+          console.error('One or more form elements not found');
+          return;
+        }
+    
+        const formData = {
+          user: 0, // Assuming 0 for anonymous user
+          pickup: pickupElement.value,
+          destination: destinationElement.value,
+          price: 0, // You'll need to implement pricing logic
+          completed: 0, // 0 for false
+          serviceLevel: serviceLevelElement.value,
+          shippingType: shippingTypeElement.value,
+          weight: parseFloat(weightElement.value) || 0
+        };
+    
+        console.log('Submitting form data:', formData);
+    
+        try {
+          const response = await fetch('/api/submit-quote', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData),
+          });
+    
+          console.log('Response status:', response.status);
+          console.log('Response headers:', Object.fromEntries(response.headers));
+    
+          const responseText = await response.text();
+          console.log('Response text:', responseText);
+    
+          let result;
+          try {
+            result = JSON.parse(responseText);
+          } catch (parseError) {
+            console.error('Error parsing JSON:', parseError);
+            throw new Error('Invalid JSON response from server');
+          }
+    
+          if (result.success) {
+            alert(`Quote submitted successfully! Order ID: ${result.orderId}`);
+          } else {
+            alert('Error submitting quote: ' + result.error);
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          alert('Error submitting quote: ' + (error instanceof Error ? error.message : String(error)));
+        }
+      });
+    });
+</script>
