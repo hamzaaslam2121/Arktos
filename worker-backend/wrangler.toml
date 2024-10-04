@@ -10,6 +10,9 @@ account_id = "7939b0fd79672cd02e8be513c9578de7"
 route = "https://your-domain.com/*"
 zone_id = "8910e020ac3ffa503d8409992961dc85"
 
+[vars]
+GOOGLE_MAPS_API_KEY = "AIzaSyDQAS10PACxUcHOp-46b10e6Etfrguxato"
+
 # Automatically place your workloads in an optimal location to minimize latency.
 # If you are running back-end logic in a Worker, running it closer to your back-end infrastructure
 # rather than the end user may result in better performance.

@@ -9,39 +9,55 @@ console.log("Current user ID:", userId);
 // ...
 
 ---
+
 <div class="w-full max-w-3xl mx-auto bg-white rounded-lg shadow p-6">
-    <div class="mb-6">
-      <h2 class="text-2xl font-bold">PARCEL DELIVERY QUICK QUOTE</h2>
-      <p class="text-sm text-gray-600">
-        Simply enter your parcel details and destination to see the prices and services available.
-      </p>
+  <div class="mb-6">
+    <h2 class="text-2xl font-bold">PARCEL DELIVERY QUICK QUOTE</h2>
+    <p class="text-sm text-gray-600">
+      Simply enter your parcel details and destination to see the prices and services available.
+    </p>
+  </div>
+
+  <form class="space-y-4" id="parcelForm">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="relative">
+        <label class="block text-sm font-medium mb-1" for="pickup">Collection postcode:</label>
+        <input
+          type="text"
+          id="pickup"
+          placeholder="Enter collection postcode"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+          autocomplete="off"
+          required
+        />
+        <ul id="pickup-suggestions" class="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto hidden"></ul>
+      </div>
+      <div class="relative">
+        <label class="block text-sm font-medium mb-1" for="destination">Delivery postcode:</label>
+        <input
+          type="text"
+          id="destination"
+          placeholder="Enter delivery postcode"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+          autocomplete="off"
+          required
+        />
+        <ul id="destination-suggestions" class="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto hidden"></ul>
+      </div>
+    </div>
+
+    <div class="flex justify-end">
+      <button type="button" id="calculateDistance" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+        Calculate Distance
+      </button>
+    </div>
+
+    <div id="distance-info" class="mt-4 p-3 bg-gray-100 rounded-md hidden">
+      <p class="text-sm font-medium">Estimated driving distance: <span id="distance-value"></span></p>
     </div>
   
-    <form class="space-y-4" id="parcelForm">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium mb-1" for="pickup">Collection postcode:</label>
-          <input
-            type="text"
-            id="pickup"
-            placeholder="Enter collection postcode"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-            required
-          />
-        </div>
-        <div>
-          <label class="block text-sm font-medium mb-1" for="destination">Delivery postcode:</label>
-          <input
-            type="text"
-            id="destination"
-            placeholder="Enter delivery postcode"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-            required
-          />
-        </div>
-      </div>
-  
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        
         <div>
           <label class="block text-sm font-medium mb-1" for="weight">Weight (kg):</label>
           <input
@@ -91,12 +107,118 @@ console.log("Current user ID:", userId);
 <script define:vars={{ userId }}>
     document.addEventListener('DOMContentLoaded', () => {
       const form = document.getElementById('parcelForm');
-      
-      if (!form) {
-        console.error('Form not found');
+      const pickupInput = document.getElementById('pickup');
+      const destinationInput = document.getElementById('destination');  
+      const pickupSuggestions = document.getElementById('pickup-suggestions');
+      const destinationSuggestions = document.getElementById('destination-suggestions');    
+      const distanceInfo = document.getElementById('distance-info');
+      const distanceValue = document.getElementById('distance-value');
+      const calculateButton = document.getElementById('calculateDistance');
+
+      if (!form || !pickupInput || !destinationInput || !pickupSuggestions || !destinationSuggestions || !distanceInfo || !distanceValue || !calculateButton) {
+        console.error('One or more form elements not found');
         return;
       }
-    
+      async function fetchPostcodeSuggestions(input) {
+        if (input.length < 2) return [];
+        
+        try {
+          const response = await fetch(`/api/postcode-suggestions?q=${encodeURIComponent(input)}`);
+          if (!response.ok) throw new Error('Failed to fetch suggestions');
+          return await response.json();
+        } catch (error) {
+          console.error('Error fetching postcode suggestions:', error);
+          return [];
+        }
+      }
+
+      function updateSuggestions(input, suggestionsElement) {
+        if (!input || !suggestionsElement) {
+          console.error('Input or suggestions element is undefined');
+          return;
+        }
+
+        fetchPostcodeSuggestions(input.value).then(suggestions => {
+          suggestionsElement.innerHTML = '';
+          if (suggestions.length > 0) {
+            suggestions.forEach(suggestion => {
+              const li = document.createElement('li');
+              li.textContent = suggestion;
+              li.className = 'px-3 py-2 hover:bg-gray-100 cursor-pointer';
+              li.addEventListener('click', () => {
+                input.value = suggestion;
+                suggestionsElement.classList.add('hidden');
+              });
+              suggestionsElement.appendChild(li);
+            });
+            suggestionsElement.classList.remove('hidden');
+          } else {
+            suggestionsElement.classList.add('hidden');
+          }
+        }).catch(error => {
+          console.error('Error updating suggestions:', error);
+          suggestionsElement.classList.add('hidden');
+        });
+      }
+
+      async function calculateDistance() {
+        const pickup = pickupInput.value.trim();
+        const destination = destinationInput.value.trim();
+        
+        if (pickup && destination) {
+          try {
+            const response = await fetch(`/api/calculate-distance?origin=${encodeURIComponent(pickup)}&destination=${encodeURIComponent(destination)}`);
+            if (!response.ok) throw new Error('Failed to calculate distance');
+            
+            const data = await response.json();
+            
+            if (data.distance) {
+              distanceValue.textContent = `${data.distance} ${data.unit}`;
+              distanceInfo.classList.remove('hidden');
+            } else {
+              throw new Error('Invalid distance data');
+            }
+          } catch (error) {
+            console.error('Error calculating distance:', error);
+            distanceInfo.classList.add('hidden');
+          }
+        } else {
+          alert('Please enter both pickup and delivery postcodes.');
+        }
+      }
+
+      let debounceTimer;
+      function debounce(func, delay) {
+        return function() {
+          const context = this;
+          const args = arguments;
+          clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(() => func.apply(context, args), delay);
+        }
+      }
+
+      pickupInput.addEventListener('input', debounce(() => {
+        updateSuggestions(pickupInput, pickupSuggestions);
+      }, 300));
+
+      destinationInput.addEventListener('input', debounce(() => {
+        updateSuggestions(destinationInput, destinationSuggestions);
+      }, 300));
+
+      document.addEventListener('click', (e) => {
+        if (pickupSuggestions && !pickupInput.contains(e.target) && !pickupSuggestions.contains(e.target)) {
+          pickupSuggestions.classList.add('hidden');
+        }
+        if (destinationSuggestions && !destinationInput.contains(e.target) && !destinationSuggestions.contains(e.target)) {
+          destinationSuggestions.classList.add('hidden');
+        }
+      });
+
+      calculateButton.addEventListener('click', calculateDistance);
+
+      // pickupInput.addEventListener('input', debounce(() => updateSuggestions(pickupInput, 'pickup-suggestions'), 300));
+      // destinationInput.addEventListener('input', debounce(() => updateSuggestions(destinationInput, 'destination-suggestions'), 300));
+
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
     
