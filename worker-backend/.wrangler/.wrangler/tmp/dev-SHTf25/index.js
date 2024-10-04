@@ -1,4 +1,4 @@
-// .wrangler/.wrangler/tmp/bundle-ztWY0U/checked-fetch.js
+// .wrangler/.wrangler/tmp/bundle-Kt97jH/checked-fetch.js
 var urls = /* @__PURE__ */ new Set();
 function checkURL(request, init) {
   const url = request instanceof URL ? request : new URL(
@@ -223,7 +223,7 @@ var drainBody = async (request, env, _ctx, middlewareCtx) => {
 };
 var middleware_ensure_req_body_drained_default = drainBody;
 
-// .wrangler/.wrangler/tmp/bundle-ztWY0U/middleware-insertion-facade.js
+// .wrangler/.wrangler/tmp/bundle-Kt97jH/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default
 ];
@@ -251,7 +251,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
   ]);
 }
 
-// .wrangler/.wrangler/tmp/bundle-ztWY0U/middleware-loader.entry.ts
+// .wrangler/.wrangler/tmp/bundle-Kt97jH/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;

@@ -44,15 +44,13 @@ console.log("Current user ID:", userId);
       </div>
     </div>
 
-    <div class="flex justify-end">
+    <!-- <div class="flex justify-end">
       <button type="button" id="calculateDistance" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
         Calculate Distance
       </button>
-    </div>
+    </div> -->
 
-    <div id="distance-info" class="mt-4 p-3 bg-gray-100 rounded-md hidden">
-      <p class="text-sm font-medium">Estimated driving distance: <span id="distance-value"></span></p>
-    </div>
+
   
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         
@@ -93,7 +91,12 @@ console.log("Current user ID:", userId);
           </select>
         </div>
       </div>
-  
+      <div id="distance-info" class="mt-4 p-3 bg-gray-100 rounded-md hidden">
+        <p class="text-sm font-medium">Estimated driving distance: <span id="distance-value"></span></p>
+      </div>
+      <div id="price-info" class="mt-4 p-3 bg-gray-100 rounded-md hidden">
+        <p>Estimated Price: $<span id="price-value">N/A</span></p>
+      </div>
       <div class="flex justify-end items-center pt-4">
         <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
           Get Quote & Book
@@ -110,16 +113,50 @@ console.log("Current user ID:", userId);
       const destinationInput = document.getElementById('destination');
       const distanceInfo = document.getElementById('distance-info');
       const distanceValue = document.getElementById('distance-value');
-      const calculateButton = document.getElementById('calculateDistance');
+      const priceInfo = document.getElementById('price-info'); // Get the price info div
+      const priceElement = document.getElementById('price-value');
+      const weightInput = document.getElementById('weight');
+      const serviceLevelSelect = document.getElementById('serviceLevel');
+      const shippingTypeSelect = document.getElementById('shippingType');
+      let calculatedDistance = 0;
 
-      if (!form || !pickupInput || !destinationInput || !distanceInfo || !distanceValue || !calculateButton) {
+      if (!form || !pickupInput || !destinationInput || !distanceInfo || !distanceValue || !weightInput || !serviceLevelSelect || !shippingTypeSelect) {
         console.error('One or more form elements not found');
         return;
       }
+
       // Initialize Google Maps Autocomplete
       const pickupAutocomplete = new google.maps.places.Autocomplete(pickupInput, { types: ['address'] });
       const destinationAutocomplete = new google.maps.places.Autocomplete(destinationInput, { types: ['address'] });
 
+      function calculatePrice() {
+        const distance = calculatedDistance;
+        const weight = parseFloat(weightInput.value) || 0;
+        const serviceLevel = serviceLevelSelect.value;
+        const shippingType = shippingTypeSelect.value;
+
+        // Base price calculation
+        let price = (distance / 4) + 3;
+
+        // Adjust price based on weight
+        price += weight * 0.5;
+
+        // Adjust price based on service level
+        if (serviceLevel === 'express') {
+          price *= 1.5;
+        } else if (serviceLevel === 'nextDay') {
+          price *= 2;
+        }
+
+        // Adjust price based on shipping type
+        if (shippingType === 'document') {
+          price *= 0.8;
+        } else if (shippingType === 'pallet') {
+          price *= 2.5;
+        }
+
+        return price.toFixed(2);
+      }
       async function calculateDistance() {
         const pickup = pickupInput.value.trim();
         const destination = destinationInput.value.trim();
@@ -127,22 +164,38 @@ console.log("Current user ID:", userId);
         if (pickup && destination) {
           try {
             const response = await fetch(`/api/calculate-distance?origin=${encodeURIComponent(pickup)}&destination=${encodeURIComponent(destination)}`);
-            if (!response.ok) throw new Error('Failed to calculate distance');
+            if (!response.ok) throw new Error(`Failed to calculate distance: ${response.status} ${response.statusText}`);
             
             const data = await response.json();
             
             if (data.distance) {
+              calculatedDistance = parseFloat(data.distance);
               distanceValue.textContent = `${data.distance} ${data.unit}`;
-              distanceInfo.classList.remove('hidden');
+              //distanceInfo.classList.remove('hidden');
+              updatePrice();
             } else {
               throw new Error('Invalid distance data');
             }
           } catch (error) {
             console.error('Error calculating distance:', error);
             distanceInfo.classList.add('hidden');
+            priceInfo.classList.add('hidden'); // Hide price on error
+            priceElement.textContent = 'N/A';
           }
         } else {
-          alert('Please enter both pickup and delivery addresses.');
+          distanceInfo.classList.add('hidden');
+          priceInfo.classList.add('hidden'); // Hide price when no input
+          priceElement.textContent = 'N/A';
+        }
+      }
+      function updatePrice() {
+        if (pickupInput.value && destinationInput.value && weightInput.value && calculatedDistance > 0) {
+          const price = calculatePrice();
+          priceElement.textContent = price;
+          priceInfo.classList.remove('hidden'); // Show the price div
+        } else {
+          priceElement.textContent = 'N/A';
+          priceInfo.classList.add('hidden'); // Hide if no input or distance
         }
       }
 
@@ -156,81 +209,53 @@ console.log("Current user ID:", userId);
         }
       }
 
-      pickupInput.addEventListener('input', debounce(() => {
-        updateSuggestions(pickupInput, pickupSuggestions);
-      }, 300));
+      // Add event listeners to both input fields
+  pickupInput.addEventListener('input', debounce(calculateDistance, 500));
+  destinationInput.addEventListener('input', debounce(calculateDistance, 500));
+  weightInput.addEventListener('input', updatePrice);
+  serviceLevelSelect.addEventListener('change', updatePrice);
+  shippingTypeSelect.addEventListener('change', updatePrice);
 
-      destinationInput.addEventListener('input', debounce(() => {
-        updateSuggestions(destinationInput, destinationSuggestions);
-      }, 300));
 
-      document.addEventListener('click', (e) => {
-        if (pickupSuggestions && !pickupInput.contains(e.target) && !pickupSuggestions.contains(e.target)) {
-          pickupSuggestions.classList.add('hidden');
-        }
-        if (destinationSuggestions && !destinationInput.contains(e.target) && !destinationSuggestions.contains(e.target)) {
-          destinationSuggestions.classList.add('hidden');
-        }
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const formData = {
+      user: userId || 'anonymous',
+      pickup: pickupInput.value,
+      destination: destinationInput.value,
+      price: parseFloat(priceElement.textContent) || 0,
+      distance: calculatedDistance,
+      completed: 0,
+      serviceLevel: serviceLevelSelect.value,
+      shippingType: shippingTypeSelect.value,
+      weight: parseFloat(weightInput.value) || 0
+    };
+
+    console.log('Submitting form data:', formData);
+
+    try {
+      const response = await fetch('/api/submit-quote', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
       });
 
-      calculateButton.addEventListener('click', calculateDistance);
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
-      form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const weightElement = document.getElementById('weight');
-        const serviceLevelElement = document.getElementById('serviceLevel');
-        const shippingTypeElement = document.getElementById('shippingType');
-    
-        if (!weightElement || !serviceLevelElement || !shippingTypeElement) {
-        console.error('One or more form elements not found');
-        return;
+      const result = await response.json();
+
+      if (result.success) {
+        alert(`Quote submitted successfully! Order ID: ${result.orderId}`);
+      } else {
+        alert('Error submitting quote: ' + result.error);
       }
-    
-        const formData = {
-          user: userId || 'anonymous', // Use the userId passed from Astro, or 'anonymous' if not available
-          pickup: pickupInput.value,
-          destination: destinationInput.value,
-          price: 0, // You'll need to implement pricing logic
-          completed: 0, // 0 for false
-          serviceLevel: serviceLevelElement.value,
-          shippingType: shippingTypeElement.value,
-          weight: parseFloat(weightElement.value) || 0
-        };
-    
-        console.log('Submitting form data:', formData);
-    
-        try {
-          const response = await fetch('/api/submit-quote', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(formData),
-          });
-    
-          console.log('Response status:', response.status);
-          console.log('Response headers:', Object.fromEntries(response.headers));
-    
-          const responseText = await response.text();
-          console.log('Response text:', responseText);
-    
-          let result;
-          try {
-            result = JSON.parse(responseText);
-          } catch (parseError) {
-            console.error('Error parsing JSON:', parseError);
-            throw new Error('Invalid JSON response from server');
-          }
-    
-          if (result.success) {
-            alert(`Quote submitted successfully! Order ID: ${result.orderId}`);
-          } else {
-            alert('Error submitting quote: ' + result.error);
-          }
-        } catch (error) {
-          console.error('Error:', error);
-          alert('Error submitting quote: ' + (error instanceof Error ? error.message : String(error)));
-        }
-      });
-    });
-  </script>
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error submitting quote: ' + (error instanceof Error ? error.message : String(error)));
+    }
+  });
+});
+</script>
