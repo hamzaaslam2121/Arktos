@@ -37,6 +37,8 @@ interface DistanceMatrixResponse {
 	  }[];
 	}[];
   }
+
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
@@ -187,18 +189,18 @@ async function handleApiRequest(pathname: string, request: Request, env: Env): P
 
   if (pathname === '/api/calculate-distance') {
     const url = new URL(request.url);
-    const originPostcode = url.searchParams.get('origin');
-    const destinationPostcode = url.searchParams.get('destination');
+    const origin = url.searchParams.get('origin');
+    const destination = url.searchParams.get('destination');
 
-    if (!originPostcode || !destinationPostcode) {
-      return new Response(JSON.stringify({ error: 'Origin and destination postcodes are required' }), {
+    if (!origin || !destination) {
+      return new Response(JSON.stringify({ error: 'Origin and destination addresses are required' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       });
     }
 
     try {
-      const distanceMatrixUrl = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${encodeURIComponent(originPostcode)}&destinations=${encodeURIComponent(destinationPostcode)}&mode=driving&key=${env.GOOGLE_MAPS_API_KEY}`;
+      const distanceMatrixUrl = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${encodeURIComponent(origin)}&destinations=${encodeURIComponent(destination)}&mode=driving&key=${env.GOOGLE_MAPS_API_KEY}`;
       
       const response = await fetch(distanceMatrixUrl);
       if (!response.ok) throw new Error('Failed to fetch distance from Google Maps API');

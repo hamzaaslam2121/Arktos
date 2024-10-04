@@ -21,28 +21,26 @@ console.log("Current user ID:", userId);
   <form class="space-y-4" id="parcelForm">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div class="relative">
-        <label class="block text-sm font-medium mb-1" for="pickup">Collection postcode:</label>
+        <label class="block text-sm font-medium mb-1" for="pickup">Collection address:</label>
         <input
           type="text"
           id="pickup"
-          placeholder="Enter collection postcode"
+          placeholder="Enter collection address"
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
           autocomplete="off"
           required
         />
-        <ul id="pickup-suggestions" class="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto hidden"></ul>
       </div>
       <div class="relative">
-        <label class="block text-sm font-medium mb-1" for="destination">Delivery postcode:</label>
+        <label class="block text-sm font-medium mb-1" for="destination">Delivery address:</label>
         <input
           type="text"
           id="destination"
-          placeholder="Enter delivery postcode"
+          placeholder="Enter delivery address"
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
           autocomplete="off"
           required
         />
-        <ul id="destination-suggestions" class="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto hidden"></ul>
       </div>
     </div>
 
@@ -104,62 +102,23 @@ console.log("Current user ID:", userId);
     </form>
 </div>
   
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDQAS10PACxUcHOp-46b10e6Etfrguxato&libraries=places"></script>
 <script define:vars={{ userId }}>
     document.addEventListener('DOMContentLoaded', () => {
       const form = document.getElementById('parcelForm');
       const pickupInput = document.getElementById('pickup');
-      const destinationInput = document.getElementById('destination');  
-      const pickupSuggestions = document.getElementById('pickup-suggestions');
-      const destinationSuggestions = document.getElementById('destination-suggestions');    
+      const destinationInput = document.getElementById('destination');
       const distanceInfo = document.getElementById('distance-info');
       const distanceValue = document.getElementById('distance-value');
       const calculateButton = document.getElementById('calculateDistance');
 
-      if (!form || !pickupInput || !destinationInput || !pickupSuggestions || !destinationSuggestions || !distanceInfo || !distanceValue || !calculateButton) {
+      if (!form || !pickupInput || !destinationInput || !distanceInfo || !distanceValue || !calculateButton) {
         console.error('One or more form elements not found');
         return;
       }
-      async function fetchPostcodeSuggestions(input) {
-        if (input.length < 2) return [];
-        
-        try {
-          const response = await fetch(`/api/postcode-suggestions?q=${encodeURIComponent(input)}`);
-          if (!response.ok) throw new Error('Failed to fetch suggestions');
-          return await response.json();
-        } catch (error) {
-          console.error('Error fetching postcode suggestions:', error);
-          return [];
-        }
-      }
-
-      function updateSuggestions(input, suggestionsElement) {
-        if (!input || !suggestionsElement) {
-          console.error('Input or suggestions element is undefined');
-          return;
-        }
-
-        fetchPostcodeSuggestions(input.value).then(suggestions => {
-          suggestionsElement.innerHTML = '';
-          if (suggestions.length > 0) {
-            suggestions.forEach(suggestion => {
-              const li = document.createElement('li');
-              li.textContent = suggestion;
-              li.className = 'px-3 py-2 hover:bg-gray-100 cursor-pointer';
-              li.addEventListener('click', () => {
-                input.value = suggestion;
-                suggestionsElement.classList.add('hidden');
-              });
-              suggestionsElement.appendChild(li);
-            });
-            suggestionsElement.classList.remove('hidden');
-          } else {
-            suggestionsElement.classList.add('hidden');
-          }
-        }).catch(error => {
-          console.error('Error updating suggestions:', error);
-          suggestionsElement.classList.add('hidden');
-        });
-      }
+      // Initialize Google Maps Autocomplete
+      const pickupAutocomplete = new google.maps.places.Autocomplete(pickupInput, { types: ['address'] });
+      const destinationAutocomplete = new google.maps.places.Autocomplete(destinationInput, { types: ['address'] });
 
       async function calculateDistance() {
         const pickup = pickupInput.value.trim();
@@ -183,7 +142,7 @@ console.log("Current user ID:", userId);
             distanceInfo.classList.add('hidden');
           }
         } else {
-          alert('Please enter both pickup and delivery postcodes.');
+          alert('Please enter both pickup and delivery addresses.');
         }
       }
 
@@ -216,27 +175,21 @@ console.log("Current user ID:", userId);
 
       calculateButton.addEventListener('click', calculateDistance);
 
-      // pickupInput.addEventListener('input', debounce(() => updateSuggestions(pickupInput, 'pickup-suggestions'), 300));
-      // destinationInput.addEventListener('input', debounce(() => updateSuggestions(destinationInput, 'destination-suggestions'), 300));
-
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
-    
-        const pickupElement = document.getElementById('pickup');
-        const destinationElement = document.getElementById('destination');
         const weightElement = document.getElementById('weight');
         const serviceLevelElement = document.getElementById('serviceLevel');
         const shippingTypeElement = document.getElementById('shippingType');
     
-        if (!pickupElement || !destinationElement || !weightElement || !serviceLevelElement || !shippingTypeElement) {
-          console.error('One or more form elements not found');
-          return;
-        }
+        if (!weightElement || !serviceLevelElement || !shippingTypeElement) {
+        console.error('One or more form elements not found');
+        return;
+      }
     
         const formData = {
           user: userId || 'anonymous', // Use the userId passed from Astro, or 'anonymous' if not available
-          pickup: pickupElement.value,
-          destination: destinationElement.value,
+          pickup: pickupInput.value,
+          destination: destinationInput.value,
           price: 0, // You'll need to implement pricing logic
           completed: 0, // 0 for false
           serviceLevel: serviceLevelElement.value,
@@ -280,4 +233,4 @@ console.log("Current user ID:", userId);
         }
       });
     });
-</script>
+  </script>

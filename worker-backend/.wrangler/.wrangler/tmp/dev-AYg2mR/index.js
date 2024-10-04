@@ -1,4 +1,4 @@
-// .wrangler/.wrangler/tmp/bundle-XpOi1q/checked-fetch.js
+// .wrangler/.wrangler/tmp/bundle-ztWY0U/checked-fetch.js
 var urls = /* @__PURE__ */ new Set();
 function checkURL(request, init) {
   const url = request instanceof URL ? request : new URL(
@@ -146,16 +146,16 @@ async function handleApiRequest(pathname, request, env) {
   }
   if (pathname === "/api/calculate-distance") {
     const url = new URL(request.url);
-    const originPostcode = url.searchParams.get("origin");
-    const destinationPostcode = url.searchParams.get("destination");
-    if (!originPostcode || !destinationPostcode) {
-      return new Response(JSON.stringify({ error: "Origin and destination postcodes are required" }), {
+    const origin = url.searchParams.get("origin");
+    const destination = url.searchParams.get("destination");
+    if (!origin || !destination) {
+      return new Response(JSON.stringify({ error: "Origin and destination addresses are required" }), {
         status: 400,
         headers: { "Content-Type": "application/json" }
       });
     }
     try {
-      const distanceMatrixUrl = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${encodeURIComponent(originPostcode)}&destinations=${encodeURIComponent(destinationPostcode)}&mode=driving&key=${env.GOOGLE_MAPS_API_KEY}`;
+      const distanceMatrixUrl = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${encodeURIComponent(origin)}&destinations=${encodeURIComponent(destination)}&mode=driving&key=${env.GOOGLE_MAPS_API_KEY}`;
       const response = await fetch(distanceMatrixUrl);
       if (!response.ok)
         throw new Error("Failed to fetch distance from Google Maps API");
@@ -223,7 +223,7 @@ var drainBody = async (request, env, _ctx, middlewareCtx) => {
 };
 var middleware_ensure_req_body_drained_default = drainBody;
 
-// .wrangler/.wrangler/tmp/bundle-XpOi1q/middleware-insertion-facade.js
+// .wrangler/.wrangler/tmp/bundle-ztWY0U/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default
 ];
@@ -251,7 +251,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
   ]);
 }
 
-// .wrangler/.wrangler/tmp/bundle-XpOi1q/middleware-loader.entry.ts
+// .wrangler/.wrangler/tmp/bundle-ztWY0U/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;
