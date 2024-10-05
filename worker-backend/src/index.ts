@@ -1,8 +1,9 @@
 import { D1Database, D1Result } from '@cloudflare/workers-types';
-
+import Stripe from 'stripe';
 interface Env {
   MY_DB: D1Database;
   GOOGLE_MAPS_API_KEY: string;  // Add this line
+  STRIPE_SECRET_KEY: string;
 }
 
 interface QuoteData {
@@ -243,10 +244,168 @@ async function handleApiRequest(pathname: string, request: Request, env: Env): P
       });
     }
   }
+
+  // Add new Stripe-related routes
+  if (pathname === '/api/create-payment-intent' && request.method === 'POST') {
+    return handleCreatePaymentIntent(request, env);
+  }
+
+  // Update the submit-quote handler to include payment processing
+  if (pathname === '/api/submit-quote' && request.method === 'POST') {
+    return handleSubmitQuote(request, env);
+  }
+  if (pathname === '/api/create-checkout-session' && request.method === 'POST') {
+    return handleCreateCheckoutSession(request, env);
+  }
   // Default return for unmatched routes
   return new Response('Not Found', { status: 404 });
 }
+async function handleCreateCheckoutSession(request: Request, env: Env): Promise<Response> {
+  try {
+	  const stripe = new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' as Stripe.LatestApiVersion});
+    const data = await request.json() as QuoteData;
 
+    // Create a new order in your database
+    const orderResult = await env.MY_DB.prepare(
+      `INSERT INTO orders (user, pickup, destination, price, completed, serviceLevel, shippingType, weight) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+    )
+    .bind(
+      data.user,
+      data.pickup,
+      data.destination,
+      data.price,
+      data.completed,
+      data.serviceLevel,
+      data.shippingType,
+      data.weight
+    )
+    .run();
+
+    if (!orderResult || !orderResult.meta || orderResult.meta.changes !== 1) {
+      throw new Error("Failed to insert the order");
+    }
+
+    const orderId = orderResult.meta.last_row_id;
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: 'Parcel Delivery',
+              description: `From ${data.pickup} to ${data.destination}`,
+            },
+            unit_amount: Math.round(data.price * 100), // Stripe expects amount in cents
+          },
+          quantity: 1,
+        },
+      ],
+      mode: 'payment',
+      success_url: `${request.headers.get('Origin')}/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${request.headers.get('Origin')}/cancel`,
+      metadata: {
+        orderId: orderId.toString(),
+      },
+    });
+
+    return new Response(JSON.stringify({ sessionId: session.id }), {
+      headers: { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+    });
+  } catch (error) {
+    console.error("Error creating checkout session:", error);
+    return new Response(JSON.stringify({ error: 'Failed to create checkout session' }), {
+      status: 500,
+      headers: { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+    });
+  }
+}
+async function handleCreatePaymentIntent(request: Request, env: Env): Promise<Response> {
+	try {
+	  const stripe = new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' as Stripe.LatestApiVersion});
+	  const body = await request.json() as { price: number };
+
+    if (typeof body.price !== 'number') {
+      throw new Error('Invalid price provided');
+    }
+
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(body.price * 100), // Stripe expects amount in cents
+      currency: 'usd',
+    });
+
+    return new Response(JSON.stringify({ clientSecret: paymentIntent.client_secret }), {
+      headers: { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+    });
+	} catch (error) {
+		console.error("Error creating payment intent:", error);
+		return new Response(JSON.stringify({ error: 'Failed to create payment intent' }), {
+		status: 500,
+		headers: { 
+			'Content-Type': 'application/json',
+			'Access-Control-Allow-Origin': '*',
+		},
+		});
+	}
+}
+  
+  async function handleSubmitQuote(request: Request, env: Env): Promise<Response> {
+    try {
+      const data = await request.json() as QuoteData & { paymentIntentId: string };
+      
+      console.log('Received data:', JSON.stringify(data));
+    
+      const result = await env.MY_DB.prepare(
+      `INSERT INTO orders (user, stripe_payment_intent_id, pickup, destination, price, completed, serviceLevel, shippingType, weight) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      )
+      .bind(
+      data.user,
+      data.paymentIntentId,
+      data.pickup,
+      data.destination,
+      data.price,
+      data.completed,
+      data.serviceLevel,
+      data.shippingType,
+      data.weight
+      )
+      .run();
+    
+      console.log('Database operation result:', JSON.stringify(result));
+    
+      if (result && result.meta && result.meta.changes === 1) {
+      return new Response(JSON.stringify({ success: true, orderId: result.meta.last_row_id }), {
+        headers: { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        },
+      });
+      } else {
+      throw new Error("Failed to insert the order");
+      }
+    } catch (error) {
+      console.error("Error submitting quote:", error);
+      return new Response(JSON.stringify({ success: false, error: error instanceof Error ? error.message : String(error) }), {
+      status: 500,
+      headers: { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+      });
+    }
+  }
 function isDistanceMatrixResponse(data: unknown): data is DistanceMatrixResponse {
 	if (typeof data !== 'object' || data === null) {
 	  return false;

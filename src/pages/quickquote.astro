@@ -105,9 +105,11 @@ console.log("Current user ID:", userId);
     </form>
 </div>
   
+<script src="https://js.stripe.com/v3/"></script>
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDQAS10PACxUcHOp-46b10e6Etfrguxato&libraries=places"></script>
 <script define:vars={{ userId }}>
     document.addEventListener('DOMContentLoaded', () => {
+      const stripe = Stripe('pk_test_51OddvpG2vb5Xhm5fmHYLmRtMlZE1syE8oI4ohzhNcU7hdxRYY8hcV98pQNuVVTs4iaJjoxXhKwcXzCUvgdkrwqbi00ALKz3pW8'); // Replace with your actual Stripe publishable key
       const form = document.getElementById('parcelForm');
       const pickupInput = document.getElementById('pickup');
       const destinationInput = document.getElementById('destination');
@@ -218,44 +220,50 @@ console.log("Current user ID:", userId);
 
 
   form.addEventListener('submit', async (e) => {
-    e.preventDefault();
+        e.preventDefault();
 
-    const formData = {
-      user: userId || 'anonymous',
-      pickup: pickupInput.value,
-      destination: destinationInput.value,
-      price: parseFloat(priceElement.textContent) || 0,
-      distance: calculatedDistance,
-      completed: 0,
-      serviceLevel: serviceLevelSelect.value,
-      shippingType: shippingTypeSelect.value,
-      weight: parseFloat(weightInput.value) || 0
-    };
+        const formData = {
+          user: userId || 'anonymous',
+          pickup: pickupInput.value,
+          destination: destinationInput.value,
+          price: parseFloat(priceElement.textContent) || 0,
+          distance: calculatedDistance,
+          completed: 0,
+          serviceLevel: serviceLevelSelect.value,
+          shippingType: shippingTypeSelect.value,
+          weight: parseFloat(weightInput.value) || 0
+        };
 
-    console.log('Submitting form data:', formData);
+        console.log('Submitting form data:', formData);
 
-    try {
-      const response = await fetch('/api/submit-quote', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
+        try {
+          // Create a Checkout Session
+          const response = await fetch('/api/create-checkout-session', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData),
+          });
+
+          if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+          const { sessionId } = await response.json();
+
+          // Redirect to Stripe Checkout
+          const result = await stripe.redirectToCheckout({
+            sessionId: sessionId
+          });
+
+          if (result.error) {
+            // If `redirectToCheckout` fails due to a browser or network
+            // error, display the localized error message to your customer.
+            alert(result.error.message);
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          alert('Error creating checkout session: ' + (error instanceof Error ? error.message : String(error)));
+        }
       });
-
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
-      const result = await response.json();
-
-      if (result.success) {
-        alert(`Quote submitted successfully! Order ID: ${result.orderId}`);
-      } else {
-        alert('Error submitting quote: ' + result.error);
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      alert('Error submitting quote: ' + (error instanceof Error ? error.message : String(error)));
-    }
-  });
-});
+    });
 </script>
