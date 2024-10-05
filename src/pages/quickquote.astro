@@ -20,148 +20,175 @@ console.log("Current user ID:", userId);
 
   <form class="space-y-4" id="parcelForm">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div class="relative">
-        <label class="block text-sm font-medium mb-1" for="pickup">Collection address:</label>
-        <input
-          type="text"
-          id="pickup"
-          placeholder="Enter collection address"
-          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-          autocomplete="off"
-          required
-        />
+      <!-- Collection Address Section -->
+      <div class="space-y-2">
+        <div class="relative">
+          <label class="block text-sm font-medium mb-1" for="pickupPostcode">Collection Postcode:</label>
+          <input
+            type="text"
+            id="pickupPostcode"
+            placeholder="Enter collection postcode"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+            autocomplete="off"
+            required
+          />
+          <ul id="pickupSuggestions" class="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg hidden"></ul>
+        </div>
+        <div class="relative">
+          <label class="block text-sm font-medium mb-1" for="pickup">Collection address:</label>
+          <input
+            type="text"
+            id="pickup"
+            placeholder="Enter collection address"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+            autocomplete="off"
+          />
+        </div>
       </div>
-      <div class="relative">
-        <label class="block text-sm font-medium mb-1" for="destination">Delivery address:</label>
-        <input
-          type="text"
-          id="destination"
-          placeholder="Enter delivery address"
-          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-          autocomplete="off"
-          required
-        />
+
+      <!-- Delivery Address Section -->
+      <div class="space-y-2">
+        <div class="relative">
+          <label class="block text-sm font-medium mb-1" for="destinationPostcode">Delivery Postcode:</label>
+          <input
+            type="text"
+            id="destinationPostcode"
+            placeholder="Enter delivery postcode"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+            autocomplete="off"
+            required
+          />
+          <ul id="destinationSuggestions" class="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg hidden"></ul>
+        </div>
+        <div class="relative">
+          <label class="block text-sm font-medium mb-1" for="destination">Delivery address:</label>
+          <input
+            type="text"
+            id="destination"
+            placeholder="Enter delivery address"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+            autocomplete="off"
+          />
+        </div>
       </div>
     </div>
 
-    <!-- <div class="flex justify-end">
-      <button type="button" id="calculateDistance" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-        Calculate Distance
+    <!-- Rest of the form remains exactly the same -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div>
+        <label class="block text-sm font-medium mb-1" for="weight">Weight (kg):</label>
+        <input
+          type="number"
+          id="weight"
+          placeholder="Enter weight"
+          step="0.1"
+          min="0"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+          required
+        />
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1" for="serviceLevel">Service Level:</label>
+        <select 
+          id="serviceLevel" 
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+          required
+        >
+          <option value="standard">Standard</option>
+          <option value="express">Express</option>
+          <option value="nextDay">Next Day</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1" for="shippingType">Shipping Type:</label>
+        <select 
+          id="shippingType" 
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+          required
+        >
+          <option value="parcel">Parcel</option>
+          <option value="document">Document</option>
+          <option value="pallet">Pallet</option>
+        </select>
+      </div>
+    </div>
+    <div id="distance-info" class="mt-4 p-3 bg-gray-100 rounded-md hidden">
+      <p class="text-sm font-medium">Estimated driving distance: <span id="distance-value"></span></p>
+    </div>
+    <div id="price-info" class="mt-4 p-3 bg-gray-100 rounded-md hidden">
+      <p>Estimated Price: $<span id="price-value">N/A</span></p>
+    </div>
+    <div class="flex justify-end items-center pt-4">
+      <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+        Get Quote & Book
       </button>
-    </div> -->
-
-
-  
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        
-        <div>
-          <label class="block text-sm font-medium mb-1" for="weight">Weight (kg):</label>
-          <input
-            type="number"
-            id="weight"
-            placeholder="Enter weight"
-            step="0.1"
-            min="0"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-            required
-          />
-        </div>
-        <div>
-          <label class="block text-sm font-medium mb-1" for="serviceLevel">Service Level:</label>
-          <select 
-            id="serviceLevel" 
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-            required
-          >
-            <option value="standard">Standard</option>
-            <option value="express">Express</option>
-            <option value="nextDay">Next Day</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-sm font-medium mb-1" for="shippingType">Shipping Type:</label>
-          <select 
-            id="shippingType" 
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-            required
-          >
-            <option value="parcel">Parcel</option>
-            <option value="document">Document</option>
-            <option value="pallet">Pallet</option>
-          </select>
-        </div>
-      </div>
-      <div id="distance-info" class="mt-4 p-3 bg-gray-100 rounded-md hidden">
-        <p class="text-sm font-medium">Estimated driving distance: <span id="distance-value"></span></p>
-      </div>
-      <div id="price-info" class="mt-4 p-3 bg-gray-100 rounded-md hidden">
-        <p>Estimated Price: $<span id="price-value">N/A</span></p>
-      </div>
-      <div class="flex justify-end items-center pt-4">
-        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
-          Get Quote & Book
-        </button>
-      </div>
-    </form>
+    </div>
+  </form>
 </div>
   
 <script src="https://js.stripe.com/v3/"></script>
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDQAS10PACxUcHOp-46b10e6Etfrguxato&libraries=places"></script>
 <script define:vars={{ userId }}>
     document.addEventListener('DOMContentLoaded', () => {
-      const stripe = Stripe('pk_test_51OddvpG2vb5Xhm5fmHYLmRtMlZE1syE8oI4ohzhNcU7hdxRYY8hcV98pQNuVVTs4iaJjoxXhKwcXzCUvgdkrwqbi00ALKz3pW8'); // Replace with your actual Stripe publishable key
+      const stripe = Stripe('pk_test_51OddvpG2vb5Xhm5fmHYLmRtMlZE1syE8oI4ohzhNcU7hdxRYY8hcV98pQNuVVTs4iaJjoxXhKwcXzCUvgdkrwqbi00ALKz3pW8');
       const form = document.getElementById('parcelForm');
       const pickupInput = document.getElementById('pickup');
       const destinationInput = document.getElementById('destination');
+      const pickupPostcodeInput = document.getElementById('pickupPostcode');
+      const destinationPostcodeInput = document.getElementById('destinationPostcode');
+      const pickupSuggestions = document.getElementById('pickupSuggestions');
+      const destinationSuggestions = document.getElementById('destinationSuggestions');
       const distanceInfo = document.getElementById('distance-info');
       const distanceValue = document.getElementById('distance-value');
-      const priceInfo = document.getElementById('price-info'); // Get the price info div
+      const priceInfo = document.getElementById('price-info');
       const priceElement = document.getElementById('price-value');
       const weightInput = document.getElementById('weight');
       const serviceLevelSelect = document.getElementById('serviceLevel');
       const shippingTypeSelect = document.getElementById('shippingType');
       let calculatedDistance = 0;
 
-      if (!form || !pickupInput || !destinationInput || !distanceInfo || !distanceValue || !weightInput || !serviceLevelSelect || !shippingTypeSelect) {
-        console.error('One or more form elements not found');
-        return;
-      }
-
-      // Initialize Google Maps Autocomplete
+      // Keep Google Maps Autocomplete for optional address fields
       const pickupAutocomplete = new google.maps.places.Autocomplete(pickupInput, { types: ['address'] });
       const destinationAutocomplete = new google.maps.places.Autocomplete(destinationInput, { types: ['address'] });
 
-      function calculatePrice() {
-        const distance = calculatedDistance;
-        const weight = parseFloat(weightInput.value) || 0;
-        const serviceLevel = serviceLevelSelect.value;
-        const shippingType = shippingTypeSelect.value;
-
-        // Base price calculation
-        let price = (distance / 4) + 3;
-
-        // Adjust price based on weight
-        price += weight * 0.5;
-
-        // Adjust price based on service level
-        if (serviceLevel === 'express') {
-          price *= 1.5;
-        } else if (serviceLevel === 'nextDay') {
-          price *= 2;
+      // Postcode suggestions function remains the same
+      async function fetchPostcodeSuggestions(query, suggestionsList) {
+        if (query.length < 2) {
+          suggestionsList.innerHTML = '';
+          suggestionsList.classList.add('hidden');
+          return;
         }
 
-        // Adjust price based on shipping type
-        if (shippingType === 'document') {
-          price *= 0.8;
-        } else if (shippingType === 'pallet') {
-          price *= 2.5;
+        try {
+          const response = await fetch(`/api/postcode-suggestions?q=${encodeURIComponent(query)}`);
+          if (!response.ok) throw new Error('Failed to fetch suggestions');
+          
+          const suggestions = await response.json();
+          
+          suggestionsList.innerHTML = '';
+          suggestions.forEach(postcode => {
+            const li = document.createElement('li');
+            li.textContent = postcode;
+            li.className = 'px-3 py-2 hover:bg-gray-100 cursor-pointer';
+            li.onclick = () => {
+              const input = suggestionsList.id === 'pickupSuggestions' ? pickupPostcodeInput : destinationPostcodeInput;
+              input.value = postcode;
+              suggestionsList.classList.add('hidden');
+              calculateDistance(); // Trigger distance calculation when postcode is selected
+            };
+            suggestionsList.appendChild(li);
+          });
+          
+          suggestionsList.classList.remove('hidden');
+        } catch (error) {
+          console.error('Error fetching postcode suggestions:', error);
         }
-
-        return price.toFixed(2);
       }
+
+      // Modified calculateDistance function to use postcodes
       async function calculateDistance() {
-        const pickup = pickupInput.value.trim();
-        const destination = destinationInput.value.trim();
+        const pickup = pickupPostcodeInput.value.trim();
+        const destination = destinationPostcodeInput.value.trim();
         
         if (pickup && destination) {
           try {
@@ -173,7 +200,6 @@ console.log("Current user ID:", userId);
             if (data.distance) {
               calculatedDistance = parseFloat(data.distance);
               distanceValue.textContent = `${data.distance} ${data.unit}`;
-              //distanceInfo.classList.remove('hidden');
               updatePrice();
             } else {
               throw new Error('Invalid distance data');
@@ -181,23 +207,49 @@ console.log("Current user ID:", userId);
           } catch (error) {
             console.error('Error calculating distance:', error);
             distanceInfo.classList.add('hidden');
-            priceInfo.classList.add('hidden'); // Hide price on error
+            priceInfo.classList.add('hidden');
             priceElement.textContent = 'N/A';
           }
         } else {
           distanceInfo.classList.add('hidden');
-          priceInfo.classList.add('hidden'); // Hide price when no input
+          priceInfo.classList.add('hidden');
           priceElement.textContent = 'N/A';
         }
       }
+
+      // All other functions remain exactly the same
+      function calculatePrice() {
+        const distance = calculatedDistance;
+        const weight = parseFloat(weightInput.value) || 0;
+        const serviceLevel = serviceLevelSelect.value;
+        const shippingType = shippingTypeSelect.value;
+
+        let price = (distance / 4) + 3;
+        price += weight * 0.5;
+
+        if (serviceLevel === 'express') {
+          price *= 1.5;
+        } else if (serviceLevel === 'nextDay') {
+          price *= 2;
+        }
+
+        if (shippingType === 'document') {
+          price *= 0.8;
+        } else if (shippingType === 'pallet') {
+          price *= 2.5;
+        }
+
+        return price.toFixed(2);
+      }
+
       function updatePrice() {
-        if (pickupInput.value && destinationInput.value && weightInput.value && calculatedDistance > 0) {
+        if (pickupPostcodeInput.value && destinationPostcodeInput.value && weightInput.value && calculatedDistance > 0) {
           const price = calculatePrice();
           priceElement.textContent = price;
-          priceInfo.classList.remove('hidden'); // Show the price div
+          priceInfo.classList.remove('hidden');
         } else {
           priceElement.textContent = 'N/A';
-          priceInfo.classList.add('hidden'); // Hide if no input or distance
+          priceInfo.classList.add('hidden');
         }
       }
 
@@ -211,21 +263,40 @@ console.log("Current user ID:", userId);
         }
       }
 
-      // Add event listeners to both input fields
-  pickupInput.addEventListener('input', debounce(calculateDistance, 500));
-  destinationInput.addEventListener('input', debounce(calculateDistance, 500));
-  weightInput.addEventListener('input', updatePrice);
-  serviceLevelSelect.addEventListener('change', updatePrice);
-  shippingTypeSelect.addEventListener('change', updatePrice);
+      // Modified event listeners to use postcode inputs for distance calculation
+      pickupPostcodeInput.addEventListener('input', debounce(() => {
+        fetchPostcodeSuggestions(pickupPostcodeInput.value, pickupSuggestions);
+        calculateDistance();
+      }, 300));
 
+      destinationPostcodeInput.addEventListener('input', debounce(() => {
+        fetchPostcodeSuggestions(destinationPostcodeInput.value, destinationSuggestions);
+        calculateDistance();
+      }, 300));
 
-  form.addEventListener('submit', async (e) => {
+      // Remove distance calculation from address input listeners
+      weightInput.addEventListener('input', updatePrice);
+      serviceLevelSelect.addEventListener('change', updatePrice);
+      shippingTypeSelect.addEventListener('change', updatePrice);
+
+      // Hide suggestions when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!pickupPostcodeInput.contains(e.target)) {
+          pickupSuggestions.classList.add('hidden');
+        }
+        if (!destinationPostcodeInput.contains(e.target)) {
+          destinationSuggestions.classList.add('hidden');
+        }
+      });
+
+      // Form submission handler remains the same
+      form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
         const formData = {
           user: userId || 'anonymous',
-          pickup: pickupInput.value,
-          destination: destinationInput.value,
+          pickup: pickupInput.value || pickupPostcodeInput.value,
+          destination: destinationInput.value || destinationPostcodeInput.value,
           price: parseFloat(priceElement.textContent) || 0,
           distance: calculatedDistance,
           completed: 0,
@@ -237,7 +308,6 @@ console.log("Current user ID:", userId);
         console.log('Submitting form data:', formData);
 
         try {
-          // Create a Checkout Session
           const response = await fetch('/api/create-checkout-session', {
             method: 'POST',
             headers: {
@@ -250,14 +320,11 @@ console.log("Current user ID:", userId);
 
           const { sessionId } = await response.json();
 
-          // Redirect to Stripe Checkout
           const result = await stripe.redirectToCheckout({
             sessionId: sessionId
           });
 
           if (result.error) {
-            // If `redirectToCheckout` fails due to a browser or network
-            // error, display the localized error message to your customer.
             alert(result.error.message);
           }
         } catch (error) {
