@@ -17,7 +17,6 @@ const sizes = "(min-width: 640px) 42vw, 67vw";
     <HeroImage />
   </div>
 
-
   <div class="call-to-action absolute top-1/5 left-0.5 right-0 z-10 bg-black bg-opacity-0 text-white text-center" style="font-family: 'Gopher', sans-serif; font-style: normal; font-weight: 700;">
     <a
       href="tel:+44 07899 819297"  
@@ -29,7 +28,6 @@ const sizes = "(min-width: 640px) 42vw, 67vw";
   </div>
 
   <div class="relative grid h-full place-items-center sm:grid-cols-2">
-    
     <h2
       class="flex flex-col items-center gap-2 self-end sm:gap-4 sm:self-auto sm:justify-self-end"
     >
@@ -44,7 +42,7 @@ const sizes = "(min-width: 640px) 42vw, 67vw";
     </h2>
     <div
       id="astronaut"
-      class="w-2/3 max-w-3xl self-start sm:w-10/12 sm:self-auto sm:justify-self-start"
+      class="relative w-2/3 max-w-3xl self-start sm:w-10/12 sm:self-auto sm:justify-self-start"
     >
       <Image
         class="h-full w-full object-cover"
@@ -54,9 +52,14 @@ const sizes = "(min-width: 640px) 42vw, 67vw";
         loading="eager"
         alt="A floating astronaut in a space suit"
       />
+      <a
+        href="/quickquote"
+        class="get-quote-button absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-primary text-white px-6 py-3 rounded-full font-bold text-lg hover:bg-primary/80 transition-colors"
+      >
+        Get Quote
+      </a>
     </div>
   </div>
-  
 </section>
 
 <noscript>
@@ -82,6 +85,11 @@ const sizes = "(min-width: 640px) 42vw, 67vw";
     animation: float linear 2.5s infinite alternate;
   }
 
+  .get-quote-button {
+    z-index: 20;
+    box-shadow: 0 0 20px rgba(255,255,255,0.3);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     #astronaut {
       @apply animate-none;
@@ -98,35 +106,34 @@ const sizes = "(min-width: 640px) 42vw, 67vw";
   .call-to-action span {
     font-size: 30px; 
   }
-  @media (max-width: 768px) { /* Adjust breakpoint as needed */
-
-  .call-to-action a {
-    flex-direction: column-reverse; /* Stack elements vertically */
-    gap: 1rem; /* Space between text and icon */
+  @media (max-width: 768px) {
+    .call-to-action a {
+      flex-direction: column-reverse;
+      gap: 1rem;
+    }
+    .call-to-action span {
+      font-size: 16px; 
+    }
+    .call-to-action .phoneicon {
+      display: block;
+      margin: 0 auto;
+    }
+    .call-to-action {
+      bottom: 0vh;
+      left: 0;
+      right: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+    #astronaut {
+      margin-top: -15vh;
+    }
+    .get-quote-button {
+      font-size: 1rem;
+      padding: 0.5rem 1rem;
+    }
   }
-  .call-to-action span {
-    font-size: 16px; 
-  }
-  .call-to-action .phoneicon { /* Target the icon directly */
-    display: block; /* Make sure icon is visible */
-    margin: 0 auto; /* Center the icon horizontally */
-  }
-  .call-to-action {
-    /* Use viewport height to position from the bottom */
-    bottom: 0vh; /* Adjust the value (e.g., 5vh, 15vh) for desired spacing */
-    left: 0; /* Ensure full width on mobile */
-    right: 0;
-
-    /* Use flexbox for vertical centering */
-    display: flex;
-    flex-direction: column; /* Stack elements vertically on mobile */
-    justify-content: flex-end; /* Align items to the end (bottom) */
-    align-items: center;
-    padding: 2rem 1rem; /* Maintain consistent padding */
-  }
-  #astronaut {
-    margin-top: -15vh; /* Adjust the negative margin value as needed */
-  }
-}
-
 </style>

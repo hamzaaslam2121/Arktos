@@ -147,9 +147,16 @@ console.log("Current user ID:", userId);
       const shippingTypeSelect = document.getElementById('shippingType');
       let calculatedDistance = 0;
 
+
+      // Modified Autocomplete initialization to restrict to UK addresses
+      const autocompleteOptions = {
+        types: ['address'],
+        componentRestrictions: { country: 'gb' } // 'gb' is the country code for the United Kingdom
+      };
+
       // Keep Google Maps Autocomplete for optional address fields
-      const pickupAutocomplete = new google.maps.places.Autocomplete(pickupInput, { types: ['address'] });
-      const destinationAutocomplete = new google.maps.places.Autocomplete(destinationInput, { types: ['address'] });
+      const pickupAutocomplete = new google.maps.places.Autocomplete(pickupInput, autocompleteOptions);
+      const destinationAutocomplete = new google.maps.places.Autocomplete(destinationInput, autocompleteOptions);
 
       // Postcode suggestions function remains the same
       async function fetchPostcodeSuggestions(query, suggestionsList) {
