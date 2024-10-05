@@ -1,185 +1,101 @@
-<!-- ---
-// src/pages/orders.astro
-import { Icon } from "astro-icon/components";
-import { SignedIn, SignedOut,  } from "@clerk/astro/components";
+---
+const auth = Astro.locals.auth();
+const userId = auth.userId;
 
-// Placeholder order data (replace with actual data fetching)
-const orders = [
-  {
-    id: 12345,
-    date: "2023-10-27",
-    total: 99.99,
-    status: "Completed",
-    items: [
-      { name: "Product A", quantity: 2, price: 29.99 },
-      { name: "Product B", quantity: 1, price: 39.99 },
-    ],
-  },
-  // Add more orders here...
-];
+console.log("Current user ID:", userId);
+
+interface Order {
+  user: string; // Changed from number to string to match userId type
+  order: number;
+  stripe_price_id: string;
+  pickup: string;
+  destination: string;
+  price: number;
+  completed: number;
+  // Add any other fields that exist in your orders table
+}
+
+let orders: Order[] = [];
+let error: string | null = null;
+let responseStatus: number | null = null;
+let responseText: string | null = null;
+
+try {
+  const apiUrl = new URL('/api/orders', Astro.url);
+  console.log("Fetching from:", apiUrl.toString());
+  
+  const response = await fetch(apiUrl.toString());
+  responseStatus = response.status;
+  responseText = await response.text();
+  
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  
+  const allOrders = JSON.parse(responseText);
+  console.log("Fetched orders:", allOrders);
+
+  if (!Array.isArray(allOrders)) {
+    throw new Error("Received data is not an array");
+  }
+
+  // Filter orders for the current user
+  orders = allOrders.filter(order => order.user === userId);
+} catch (e) {
+  console.error("Failed to fetch or process orders:", e);
+  error = "Failed to load orders. Please check the console for more details.";
+}
 ---
 
-  <SignedIn>
-    <div class="container mx-auto px-4 py-12">
-      <h1 class="text-3xl mb-6">Your Orders</h1>
-
-      {orders.length === 0 ? (
-        <p>You have no previous orders.</p>
-      ) : (
-        <ul class="space-y-6">
-          {orders.map((order) => (
-            <li
-              class="bg-white shadow-md rounded-lg overflow-hidden"
-            >
-              <div class="p-4 border-b">
-                <div class="flex justify-between items-center">
-                  <div>
-                    <span class="text-gray-600">Order #:</span>{" "}
-                    {order.id}
-                  </div>
-                  <span
-                    class={`inline-block px-2 py-1 text-xs rounded-full ${
-                      order.status === "Completed"
-                        ? "bg-green-200 text-green-800"
-                        : order.status === "Pending"
-                        ? "bg-yellow-200 text-yellow-800"
-                        : "bg-gray-200 text-gray-800"
-                    }`}
-                  >
-                    {order.status}
-                  </span>
-                </div>
-                <div class="text-gray-600 text-sm">
-                  {new Date(order.date).toLocaleDateString()}
-                </div>
-              </div>
-              <div class="p-4">
-                <h3 class="font-medium mb-2">Order Summary</h3>
-                <ul class="border-t">
-                  {order.items.map((item) => (
-                    <li class="flex justify-between py-2 border-b">
-                      <span>{item.name}</span>
-                      <span>
-                        {item.quantity} x ${item.price.toFixed(2)}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-                <div class="flex justify-end mt-4 font-medium">
-                  Total: ${order.total.toFixed(2)}
-                </div>
-                {/* Optional: Add a button to view more details 
-                    or a link to an order details page */}
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  </SignedIn>
-
-  <SignedOut>
-    <div class="container mx-auto px-4 py-12 text-center">
-      <Icon name="mdi:login" class="text-gray-400 h-24 w-24 mx-auto mb-4" />
-      <p>Please sign in to view your orders.</p>
-    </div>
-  </SignedOut> -->
-
-
-  ---
-  interface Order {
-    user: number;
-    order: number;
-    stripe_price_id: string;
-    pickup: string;
-    destination: string;
-    price: number;
-    completed: number;
-    // Add any other fields that exist in your orders table
-  }
-  
-  let orders: Order[] = [];
-  let error: string | null = null;
-  let responseStatus: number | null = null;
-  let responseText: string | null = null;
-  
-  try {
-    const apiUrl = new URL('/api/orders', Astro.url);
-    console.log("Fetching from:", apiUrl.toString());
-    
-    const response = await fetch(apiUrl.toString());
-    responseStatus = response.status;
-    responseText = await response.text();
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    orders = JSON.parse(responseText);
-    console.log("Fetched orders:", orders);
-  
-    if (!Array.isArray(orders)) {
-      throw new Error("Received data is not an array");
-    }
-  } catch (e) {
-    console.error("Failed to fetch or process orders:", e);
-    error = "Failed to load orders. Please check the console for more details.";
-  }
-  ---
-  
-  <html lang="en">
-  <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Orders</title>
-      <style>
-          table { border-collapse: collapse; width: 100%; }
-          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-          th { background-color: #f2f2f2; }
-      </style>
-  </head>
-  <body>
-      <h1>Orders</h1>
-      {error ? (
-          <div>
-              <p style="color: red;">{error}</p>
-              <p>Response Status: {responseStatus}</p>
-              <p>Response Text: {responseText}</p>
-          </div>
-      ) : orders.length > 0 ? (
-          <table>
-              <thead>
-                  <tr>
-                      <th>User</th>
-                      <th>Order</th>
-                      <th>Stripe Price ID</th>
-                      <th>Pickup</th>
-                      <th>Destination</th>
-                      <th>Price</th>
-                      <th>Completed</th>
-                      {/* Add more column headers as needed */}
-                  </tr>
-              </thead>
-              <tbody>
-                  {orders.map((order) => (
-                      <tr>
-                          <td>{order.user}</td>
-                          <td>{order.order}</td>
-                          <td>{order.stripe_price_id}</td>
-                          <td>{order.pickup}</td>
-                          <td>{order.destination}</td>
-                          <td>${order.price.toFixed(2)}</td>
-                          <td>{order.completed}</td>
-                          {/* Add more data cells for additional columns */}
-                      </tr>
-                  ))}
-              </tbody>
-          </table>
-      ) : (
-          <p>No orders found. The orders table might be empty.</p>
-      )}
-      <script define:vars={{ordersJson: JSON.stringify(orders)}}>
-          console.log('Orders:', ordersJson);
-      </script>
-  </body>
-  </html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Orders</title>
+    <style>
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h1>Your Orders</h1>
+    {error ? (
+        <div>
+            <p style="color: red;">{error}</p>
+            <p>Response Status: {responseStatus}</p>
+            <p>Response Text: {responseText}</p>
+        </div>
+    ) : orders.length > 0 ? (
+        <table>
+            <thead>
+                <tr>
+                    {/* <th>Order ID</th> */}
+                    <th>Pickup</th>
+                    <th>Destination</th>
+                    <th>Price</th>
+                    <th>Completed</th>
+                    {/* Add more column headers as needed */}
+                </tr>
+            </thead>
+            <tbody>
+                {orders.map((order) => (
+                    <tr>
+                        {/* <td>{order.order}</td> */}
+                        <td>{order.pickup}</td>
+                        <td>{order.destination}</td>
+                        <td>${order.price.toFixed(2)}</td>
+                        <td>{order.completed ? 'Yes' : 'No'}</td>
+                        {/* Add more data cells for additional columns */}
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    ) : (
+        <p>You have no orders yet.</p>
+    )}
+    <script define:vars={{ordersJson: JSON.stringify(orders)}}>
+        console.log('Your Orders:', ordersJson);
+    </script>
+</body>
+</html>
