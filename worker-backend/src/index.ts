@@ -244,7 +244,14 @@ async function handleApiRequest(pathname: string, request: Request, env: Env): P
       });
     }
   }
-
+  if (pathname === '/api/ping') {
+    return new Response(JSON.stringify({ status: 'ok' }), {
+      headers: { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+    });
+  }
   // Add new Stripe-related routes
   if (pathname === '/api/create-payment-intent' && request.method === 'POST') {
     return handleCreatePaymentIntent(request, env);
@@ -305,7 +312,7 @@ async function handleCreateCheckoutSession(request: Request, env: Env): Promise<
       ],
       mode: 'payment',
       success_url: `${request.headers.get('Origin')}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${request.headers.get('Origin')}/cancel`,
+      cancel_url: `${request.headers.get('Origin')}/quickquote`,
       metadata: {
         orderId: orderId.toString(),
       },

@@ -5,14 +5,13 @@ const userId = auth.userId;
 console.log("Current user ID:", userId);
 
 interface Order {
-  user: string; // Changed from number to string to match userId type
+  user: string;
   order: number;
   stripe_price_id: string;
   pickup: string;
   destination: string;
   price: number;
   completed: number;
-  // Add any other fields that exist in your orders table
 }
 
 let orders: Order[] = [];
@@ -39,7 +38,6 @@ try {
     throw new Error("Received data is not an array");
   }
 
-  // Filter orders for the current user
   orders = allOrders.filter(order => order.user === userId);
 } catch (e) {
   console.error("Failed to fetch or process orders:", e);
@@ -52,48 +50,55 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Your Orders</title>
-    <style>
-        table { border-collapse: collapse; width: 100%; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
-    </style>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body>
-    <h1>Your Orders</h1>
-    {error ? (
-        <div>
-            <p style="color: red;">{error}</p>
-            <p>Response Status: {responseStatus}</p>
-            <p>Response Text: {responseText}</p>
-        </div>
-    ) : orders.length > 0 ? (
-        <table>
-            <thead>
-                <tr>
-                    {/* <th>Order ID</th> */}
-                    <th>Pickup</th>
-                    <th>Destination</th>
-                    <th>Price</th>
-                    <th>Completed</th>
-                    {/* Add more column headers as needed */}
-                </tr>
-            </thead>
-            <tbody>
-                {orders.map((order) => (
-                    <tr>
-                        {/* <td>{order.order}</td> */}
-                        <td>{order.pickup}</td>
-                        <td>{order.destination}</td>
-                        <td>£{order.price.toFixed(2)}</td>
-                        <td>{order.completed ? 'Yes' : 'No'}</td>
-                        {/* Add more data cells for additional columns */}
-                    </tr>
-                ))}
-            </tbody>
-        </table>
-    ) : (
-        <p>You have no orders yet.</p>
-    )}
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-6 text-gray-800">Your Orders</h1>
+        
+        {error ? (
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                <strong class="font-bold">Error:</strong>
+                <span class="block sm:inline">{error}</span>
+                <p class="mt-2">Response Status: {responseStatus}</p>
+                <p>Response Text: {responseText}</p>
+            </div>
+        ) : orders.length > 0 ? (
+            <div class="bg-white shadow-md rounded-lg overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pickup</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Destination</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {orders.map((order) => (
+                            <tr class="hover:bg-gray-50 transition-colors duration-200">
+                                <td class="px-6 py-4 whitespace-nowrap">{order.pickup}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">{order.destination}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="text-sm font-semibold text-gray-900">£{order.price.toFixed(2)}</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${order.completed ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                                        {order.completed ? 'Completed' : 'Pending'}
+                                    </span>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        ) : (
+            <div class="bg-white shadow-md rounded-lg p-6 text-center">
+                <p class="text-gray-600">You have no orders yet.</p>
+            </div>
+        )}
+    </div>
+
     <script define:vars={{ordersJson: JSON.stringify(orders)}}>
         console.log('Your Orders:', ordersJson);
     </script>
