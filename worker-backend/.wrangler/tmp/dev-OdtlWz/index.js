@@ -31,7 +31,7 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   mod
 ));
 
-// .wrangler/tmp/bundle-eq4KxC/checked-fetch.js
+// .wrangler/tmp/bundle-nBbnKy/checked-fetch.js
 function checkURL(request, init) {
   const url = request instanceof URL ? request : new URL(
     (typeof request === "string" ? new Request(request, init) : request).url
@@ -49,7 +49,7 @@ function checkURL(request, init) {
 }
 var urls;
 var init_checked_fetch = __esm({
-  ".wrangler/tmp/bundle-eq4KxC/checked-fetch.js"() {
+  ".wrangler/tmp/bundle-nBbnKy/checked-fetch.js"() {
     "use strict";
     urls = /* @__PURE__ */ new Set();
     globalThis.fetch = new Proxy(globalThis.fetch, {
@@ -2290,11 +2290,11 @@ var require_lib = __commonJS({
   }
 });
 
-// .wrangler/tmp/bundle-eq4KxC/middleware-loader.entry.ts
+// .wrangler/tmp/bundle-nBbnKy/middleware-loader.entry.ts
 init_checked_fetch();
 init_modules_watch_stub();
 
-// .wrangler/tmp/bundle-eq4KxC/middleware-insertion-facade.js
+// .wrangler/tmp/bundle-nBbnKy/middleware-insertion-facade.js
 init_checked_fetch();
 init_modules_watch_stub();
 
@@ -7645,13 +7645,14 @@ async function handleCreateCheckoutSession(request, env) {
       line_items: [
         {
           price_data: {
-            currency: "usd",
+            currency: "gbp",
+            // Changed from 'usd' to 'gbp'
             product_data: {
               name: "Parcel Delivery",
               description: `From ${data.pickup} to ${data.destination}`
             },
             unit_amount: Math.round(data.price * 100)
-            // Stripe expects amount in cents
+            // Stripe expects amount in pence
           },
           quantity: 1
         }
@@ -7689,8 +7690,9 @@ async function handleCreatePaymentIntent(request, env) {
     }
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(body.price * 100),
-      // Stripe expects amount in cents
-      currency: "usd"
+      // Stripe expects amount in pence
+      currency: "gbp"
+      // Changed from 'usd' to 'gbp'
     });
     return new Response(JSON.stringify({ clientSecret: paymentIntent.client_secret }), {
       headers: {
@@ -7781,7 +7783,7 @@ var drainBody = async (request, env, _ctx, middlewareCtx) => {
 };
 var middleware_ensure_req_body_drained_default = drainBody;
 
-// .wrangler/tmp/bundle-eq4KxC/middleware-insertion-facade.js
+// .wrangler/tmp/bundle-nBbnKy/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default
 ];
@@ -7811,7 +7813,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
   ]);
 }
 
-// .wrangler/tmp/bundle-eq4KxC/middleware-loader.entry.ts
+// .wrangler/tmp/bundle-nBbnKy/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;

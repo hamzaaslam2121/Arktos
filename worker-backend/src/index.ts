@@ -262,7 +262,7 @@ async function handleApiRequest(pathname: string, request: Request, env: Env): P
 }
 async function handleCreateCheckoutSession(request: Request, env: Env): Promise<Response> {
   try {
-	  const stripe = new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' as Stripe.LatestApiVersion});
+    const stripe = new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' as Stripe.LatestApiVersion});
     const data = await request.json() as QuoteData;
 
     // Create a new order in your database
@@ -293,12 +293,12 @@ async function handleCreateCheckoutSession(request: Request, env: Env): Promise<
       line_items: [
         {
           price_data: {
-            currency: 'usd',
+            currency: 'gbp', // Changed from 'usd' to 'gbp'
             product_data: {
               name: 'Parcel Delivery',
               description: `From ${data.pickup} to ${data.destination}`,
             },
-            unit_amount: Math.round(data.price * 100), // Stripe expects amount in cents
+            unit_amount: Math.round(data.price * 100), // Stripe expects amount in pence
           },
           quantity: 1,
         },
@@ -328,18 +328,19 @@ async function handleCreateCheckoutSession(request: Request, env: Env): Promise<
     });
   }
 }
+// Update the payment intent handler as well
 async function handleCreatePaymentIntent(request: Request, env: Env): Promise<Response> {
-	try {
-	  const stripe = new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' as Stripe.LatestApiVersion});
-	  const body = await request.json() as { price: number };
+  try {
+    const stripe = new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' as Stripe.LatestApiVersion});
+    const body = await request.json() as { price: number };
 
     if (typeof body.price !== 'number') {
       throw new Error('Invalid price provided');
     }
 
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(body.price * 100), // Stripe expects amount in cents
-      currency: 'usd',
+      amount: Math.round(body.price * 100), // Stripe expects amount in pence
+      currency: 'gbp', // Changed from 'usd' to 'gbp'
     });
 
     return new Response(JSON.stringify({ clientSecret: paymentIntent.client_secret }), {
@@ -348,16 +349,16 @@ async function handleCreatePaymentIntent(request: Request, env: Env): Promise<Re
         'Access-Control-Allow-Origin': '*',
       },
     });
-	} catch (error) {
-		console.error("Error creating payment intent:", error);
-		return new Response(JSON.stringify({ error: 'Failed to create payment intent' }), {
-		status: 500,
-		headers: { 
-			'Content-Type': 'application/json',
-			'Access-Control-Allow-Origin': '*',
-		},
-		});
-	}
+  } catch (error) {
+    console.error("Error creating payment intent:", error);
+    return new Response(JSON.stringify({ error: 'Failed to create payment intent' }), {
+      status: 500,
+      headers: { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+    });
+  }
 }
   
   async function handleSubmitQuote(request: Request, env: Env): Promise<Response> {

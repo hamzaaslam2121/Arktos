@@ -116,10 +116,15 @@ console.log("Current user ID:", userId);
       <p class="text-sm font-medium">Estimated driving distance: <span id="distance-value"></span></p>
     </div>
     <div id="price-info" class="mt-4 p-3 bg-gray-100 rounded-md hidden">
-      <p>Estimated Price: $<span id="price-value">N/A</span></p>
+      <p>Estimated Price: &pound;<span id="price-value">N/A</span></p>
     </div>
     <div class="flex justify-end items-center pt-4">
-      <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+      <button 
+        type="submit" 
+        id="quoteButton"
+        disabled 
+        class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
         Get Quote & Book
       </button>
     </div>
@@ -146,7 +151,7 @@ console.log("Current user ID:", userId);
       const serviceLevelSelect = document.getElementById('serviceLevel');
       const shippingTypeSelect = document.getElementById('shippingType');
       let calculatedDistance = 0;
-
+      const quoteButton = document.getElementById('quoteButton');
 
       // Modified Autocomplete initialization to restrict to UK addresses
       const autocompleteOptions = {
@@ -224,15 +229,15 @@ console.log("Current user ID:", userId);
         }
       }
 
-      // All other functions remain exactly the same
       function calculatePrice() {
         const distance = calculatedDistance;
         const weight = parseFloat(weightInput.value) || 0;
         const serviceLevel = serviceLevelSelect.value;
         const shippingType = shippingTypeSelect.value;
 
-        let price = (distance / 4) + 3;
-        price += weight * 0.5;
+        // Updated base price for GBP (assuming £0.10 per mile + £2 base charge)
+        let price = (distance * 0.1) + 2;
+        price += weight * 0.2;
 
         if (serviceLevel === 'express') {
           price *= 1.5;
@@ -254,9 +259,22 @@ console.log("Current user ID:", userId);
           const price = calculatePrice();
           priceElement.textContent = price;
           priceInfo.classList.remove('hidden');
+          
+          // Enable/disable button based on price
+          const numericPrice = parseFloat(price);
+          quoteButton.disabled = isNaN(numericPrice) || numericPrice <= 0;
+          
+          // Update button styles based on state
+          if (quoteButton.disabled) {
+            quoteButton.classList.add('opacity-50', 'cursor-not-allowed');
+          } else {
+            quoteButton.classList.remove('opacity-50', 'cursor-not-allowed');
+          }
         } else {
           priceElement.textContent = 'N/A';
           priceInfo.classList.add('hidden');
+          quoteButton.disabled = true;
+          quoteButton.classList.add('opacity-50', 'cursor-not-allowed');
         }
       }
 
