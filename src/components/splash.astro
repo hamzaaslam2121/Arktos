@@ -18,6 +18,7 @@ const sizes = "(min-width: 640px) 42vw, 67vw";
   </div>
 
   <div class="call-to-action absolute top-1/5 left-0.5 right-0 z-10 bg-black bg-opacity-0 text-white text-center" style="font-family: 'Gopher', sans-serif; font-style: normal; font-weight: 700;">
+   
     <a
       href="tel:+44 07899 819297"  
       class="flex items-center justify-center gap-3 border-0 border-current px-5 py-4"
@@ -52,13 +53,17 @@ const sizes = "(min-width: 640px) 42vw, 67vw";
         loading="eager"
         alt="A floating astronaut in a space suit"
       />
-      <a
-        href="/quickquote"
-        class="get-quote-button absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-primary text-white px-6 py-3 rounded-full font-bold text-lg hover:bg-primary/80 transition-colors"
-      >
-        Get Quote
-      </a>
     </div>
+  </div>
+  
+  <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-20">
+    <a
+      href="/quickquote"
+      class="get-quote-button bg-pink-500 text-white px-10 py-4 rounded-full font-bold text-xl hover:bg-pink-600 transition-all duration-300 flex items-center space-x-3"
+    >
+      <Icon name="mdi:rocket" class="w-6 h-6" />
+      <span>Get Quote</span>
+    </a>
   </div>
 </section>
 
@@ -132,8 +137,24 @@ const sizes = "(min-width: 640px) 42vw, 67vw";
       margin-top: -15vh;
     }
     .get-quote-button {
-      font-size: 1rem;
-      padding: 0.5rem 1rem;
+      z-index: 20;
+      box-shadow: 0 0 20px rgba(255,105,180,0.4);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(255,105,180,0.4);
+      }
+      70% {
+        box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+      }
+    }
+
+    .get-quote-button:hover {
+      transform: translate(-50%, -50%) scale(1.05);
     }
   }
 </style>
