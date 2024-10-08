@@ -1,4 +1,7 @@
 ---
+import Header from "~/components/header.astro";
+import "~/styles/index.css";
+
 const auth = Astro.locals.auth();
 const userId = auth.userId;
 
@@ -44,17 +47,187 @@ try {
   error = "Failed to load orders. Please check the console for more details.";
 }
 ---
-
-<html lang="en">
+<!doctype html>
+<html lang="en" class="h-full motion-safe:scroll-smooth" data-theme="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Orders</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Your Orders - Arknet Couriers</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    
+    <!-- Initialize theme -->
+    <script is:inline>
+      const themeSaved = localStorage.getItem("theme");
+
+      if (themeSaved) {
+        document.documentElement.dataset.theme = themeSaved;
+      } else {
+        const prefersDark = window.matchMedia(
+          "(prefers-color-scheme: dark)",
+        ).matches;
+        document.documentElement.dataset.theme = prefersDark ? "dark" : "light";
+      }
+
+      window
+        .matchMedia("(prefers-color-scheme: dark)")
+        .addEventListener("change", (event) => {
+          if (!localStorage.getItem("theme")) {
+            document.documentElement.dataset.theme = event.matches
+              ? "dark"
+              : "light";
+          }
+        });
+    </script>
+    <style>
+        /* Base styles */
+        body {
+            transition: background-color 0.3s, color 0.3s;
+            font-size: 16px;
+        }
+        
+        /* Light theme */
+        [data-theme="light"] {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f3f4f6;
+            --text-primary: #111827;
+            --text-secondary: #4b5563;
+            --border-color: #e5e7eb;
+            --hover-bg: #f9fafb;
+            --table-header-bg: #f3f4f6;
+            --status-pending-bg: #fef3c7;
+            --status-pending-text: #92400e;
+            --status-completed-bg: #d1fae5;
+            --status-completed-text: #065f46;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --shadow: 0 4px 6px -1px var(--shadow-color),
+                      0 2px 4px -1px var(--shadow-color);
+        }
+        
+        /* Dark theme */
+        [data-theme="dark"] {
+            --bg-primary: #111827;
+            --bg-secondary: #1f2937;
+            --text-primary: #f9fafb;
+            --text-secondary: #9ca3af;
+            --border-color: #374151;
+            --hover-bg: #374151;
+            --table-header-bg: #1f2937;
+            --status-pending-bg: #84370b7a;
+            --status-pending-text: #d2a125;
+            --status-completed-bg: #05463498;
+            --status-completed-text: #34d399;
+            --shadow-color: rgba(0, 0, 0, 0.5);
+            --glow-color: rgba(255, 255, 255, 0.05);
+            --shadow: 0 4px 6px -1px var(--shadow-color),
+                      0 2px 4px -1px var(--shadow-color),
+                      0 0 0 1px var(--glow-color);
+        }
+
+        
+        /* Applied styles */
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+        
+        .gradient-text {
+            /* Adjusted gradient to balance purple and pink */
+            background: linear-gradient(135deg, 
+                #7a52f1 0%, 
+                #ff0073 40%
+            );
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .orders-table {
+            width: 100%;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            border: 0px solid var(--border-color);
+            font-size: 1.25rem;
+        }
+        
+        /* Rest of the styles remain the same */
+        .orders-table thead {
+            background-color: var(--table-header-bg);
+        }
+        
+        .orders-table th {
+            padding: 1.25rem;
+            text-align: left;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+        }
+        
+        .orders-table td {
+            padding: 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 1.25rem;
+        }
+        
+        .orders-table tbody tr {
+            transition: background-color 0.2s;
+        }
+        
+        .orders-table tbody tr:hover {
+            background-color: var(--hover-bg);
+        }
+        
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-weight: 500;
+            font-size: 1.1rem;
+            display: inline-block;
+        }
+        
+        .status-badge.pending {
+            background-color: var(--status-pending-bg);
+            color: var(--status-pending-text);
+        }
+        
+        .status-badge.completed {
+            background-color: var(--status-completed-bg);
+            color: var(--status-completed-text);
+        }
+        
+        .price {
+            font-weight: 600;
+            font-size: 1.35rem;
+        }
+        
+        .no-orders {
+            background-color: var(--bg-secondary);
+            border-radius: 0.5rem;
+            padding: 2rem;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 1.25rem;
+        }
+
+        @media (max-width: 768px) {
+            .orders-table {
+                font-size: 1.1rem;
+            }
+            
+            .orders-table th,
+            .orders-table td {
+                padding: 1rem;
+            }
+        }
+    </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
-    <div class="container mx-auto px-4 py-8">
-        <h1 class="text-3xl font-bold mb-6 text-gray-800">Your Orders</h1>
+<body class="h-full overflow-x-hidden">
+    <main class="container mx-auto px-10 py-20">
+        <h1 class="gradient-text font-bold">Your Orders</h1>
         
         {error ? (
             <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
@@ -64,26 +237,24 @@ try {
                 <p>Response Text: {responseText}</p>
             </div>
         ) : orders.length > 0 ? (
-            <div class="bg-white shadow-md rounded-lg overflow-hidden">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
+            <div class="orders-container">
+                <table class="orders-table">
+                    <thead>
                         <tr>
-                            {/* <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pickup</th> */}
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Delivery address</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th>Delivery Address</th>
+                            <th>Price</th>
+                            <th>Status</th>
                         </tr>
                     </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
+                    <tbody>
                         {orders.map((order) => (
-                            <tr class="hover:bg-gray-50 transition-colors duration-200">
-                                {/* <td class="px-6 py-4 whitespace-nowrap">{order.pickup}</td> */}
-                                <td class="px-6 py-4 whitespace-nowrap">{order.destination}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="text-sm font-semibold text-gray-900">£{order.price.toFixed(2)}</span>
+                            <tr>
+                                <td>{order.destination}</td>
+                                <td>
+                                    <span class="price">£{order.price.toFixed(2)}</span>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${order.completed ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                                <td>
+                                    <span class={`status-badge ${order.completed ? 'completed' : 'pending'}`}>
                                         {order.completed ? 'Completed' : 'Pending'}
                                     </span>
                                 </td>
@@ -93,14 +264,10 @@ try {
                 </table>
             </div>
         ) : (
-            <div class="bg-white shadow-md rounded-lg p-6 text-center">
-                <p class="text-gray-600">You have no orders yet.</p>
+            <div class="no-orders">
+                <p>You have no orders yet.</p>
             </div>
         )}
-    </div>
-
-    <script define:vars={{ordersJson: JSON.stringify(orders)}}>
-        console.log('Your Orders:', ordersJson);
-    </script>
+    </main>
 </body>
 </html>
