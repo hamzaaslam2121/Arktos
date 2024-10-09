@@ -208,7 +208,33 @@ try {
         .orders-table tbody tr:hover {
             background-color: var(--hover-bg);
         }
-        
+        /* Add styles for sortable headers */
+        .sortable {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .sortable:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .sort-icon {
+            display: inline-block;
+            width: 0;
+            height: 0;
+            margin-left: 0.5rem;
+            vertical-align: middle;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+        }
+
+        .sort-icon.asc {
+            border-bottom: 4px solid var(--text-secondary);
+        }
+
+        .sort-icon.desc {
+            border-top: 4px solid var(--text-secondary);
+        }
         .status-badge {
             padding: 0.5rem 1rem;
             border-radius: 9999px;
@@ -316,7 +342,7 @@ try {
         </div>
         
     </header>
-    <main class="container mx-auto px-20 py-20">
+    <main class="container mx-auto px-20">
         <h1 class="gradient-text font-bold">Your Orders</h1>
         
         {error ? (
@@ -334,7 +360,10 @@ try {
                             <th>Delivery Address</th>
                             <th>Price</th>
                             <th>Status</th>
-                            <th>Date & Time</th>
+                            <th class="sortable" data-sort="datetime">
+                                Date & Time
+                                <span class="sort-icon"></span>
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
@@ -349,7 +378,7 @@ try {
                                         {order.completed ? 'Completed' : 'Pending'}
                                     </span>
                                 </td>
-                                <td class="datetime">
+                                <td class="datetime" data-datetime={order.datetime}>
                                     {order.datetime ? (
                                         new Date(order.datetime).toLocaleString('en-GB', {
                                             day: '2-digit',
@@ -373,6 +402,7 @@ try {
         )}
     </main>
     <script>
+        console.log("Astro script is running");
         // Ensure the theme switcher initializes and is visible
         document.addEventListener('astro:page-load', () => {
             const themeSwitcher = document.querySelector('#theme-switcher') as HTMLElement;
@@ -392,8 +422,107 @@ try {
               document.querySelector(`#icon-theme-${theme === 'light' ? 'dark' : 'light'}`)?.classList.remove('hidden');
             };
             updateIcon();
-          }
-        });
+          }        
+    });
+
+    // Helper function to parse date strings
+    function parseDate(dateString: string | null): Date | null {
+        if (!dateString) return null;
+
+        // Parse the ISO date string directly
+        return new Date(dateString);
+    }
+
+    // Sorting function
+    function sortByDateTime(a: HTMLTableRowElement, b: HTMLTableRowElement, isAscending: boolean): number {
+        const aCell = a.querySelector('td[data-datetime]');
+        const bCell = b.querySelector('td[data-datetime]');
+        
+        const aValue = aCell?.getAttribute('data-datetime') || null;
+        const bValue = bCell?.getAttribute('data-datetime') || null;
+        
+        // Parse the date strings into Date objects
+        const aDate = parseDate(aValue);
+        const bDate = parseDate(bValue);
+        
+        // Handle cases where one or both values are null
+        if (!aDate && !bDate) return 0;
+        if (!aDate) return isAscending ? -1: 1;
+        if (!bDate) return isAscending ? 1: -1;
+        
+        // Compare the dates
+        const comparison = aDate.getTime() - bDate.getTime();
+        return isAscending ? comparison : -comparison;
+    }
+
+    // Function to add click event to the table
+    function addTableClickEvent() {
+        console.log("Adding click event to table");
+        const table = document.querySelector('.orders-table') as HTMLTableElement;
+        if (table) {
+            console.log("Table found");
+            table.addEventListener('click', (event: MouseEvent) => {
+                const target = event.target as HTMLElement;
+                const header = target.closest('th.sortable') as HTMLTableCellElement;
+                if (!header) return;
+                
+                const sortKey = header.getAttribute('data-sort');
+                if (!sortKey) return;
+
+                const sortIcon = header.querySelector('.sort-icon');
+                if (!sortIcon) return;
+
+                const isAscending = sortIcon.classList.contains('desc'); // Toggle the order
+                
+                // Update sort icon
+                sortIcon.classList.toggle('asc', isAscending);
+                sortIcon.classList.toggle('desc', !isAscending);
+                
+                // Sort the table
+                const tbody = table.querySelector('tbody');
+                if (!tbody) return;
+
+                const rows = Array.from(tbody.querySelectorAll('tr')) as HTMLTableRowElement[];
+                
+                rows.sort((a, b) => {
+                    if (sortKey === 'datetime') {
+                        return sortByDateTime(a, b, isAscending);
+                    } else {
+                        // For non-date columns, use string comparison
+                        const aValue = a.querySelector(`td[data-${sortKey}]`)?.textContent?.trim() || '';
+                        const bValue = b.querySelector(`td[data-${sortKey}]`)?.textContent?.trim() || '';
+                        
+                        return isAscending ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+                    }
+                });
+                
+                // Clear and re-append sorted rows
+                tbody.innerHTML = '';
+                rows.forEach(row => tbody.appendChild(row));
+            });
+        } else {
+            console.log("Table not found");
+        }
+    }
+  addTableClickEvent();
+
+  // Also try when the DOM is fully loaded
+  document.addEventListener('DOMContentLoaded', () => {
+    console.log("2. DOMContentLoaded event fired");
+    addTableClickEvent();
+  });
+
+  // Keep the astro:page-load event as a fallback
+  document.addEventListener('astro:page-load', () => {
+    console.log("3. astro:page-load event fired");
+    addTableClickEvent();
+  });
+
+  // Add a timeout as a last resort
+  setTimeout(() => {
+    console.log("6. Timeout fired after 2 seconds");
+    addTableClickEvent();
+  }, 2000);
       </script>
 </body>
 </html>
