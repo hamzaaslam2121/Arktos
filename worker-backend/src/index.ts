@@ -2,20 +2,21 @@ import { D1Database, D1Result } from '@cloudflare/workers-types';
 import Stripe from 'stripe';
 interface Env {
   MY_DB: D1Database;
-  GOOGLE_MAPS_API_KEY: string;  // Add this line
+  GOOGLE_MAPS_API_KEY: string; 
   STRIPE_SECRET_KEY: string;
 }
 
 interface QuoteData {
-	user: string;
-	pickup: string;
-	destination: string;
-	price: number;
-	completed: number;
-	serviceLevel: string;
-	shippingType: string;
-	weight: number;
-  }
+  user: string;
+  pickup: string;
+  destination: string;
+  price: number;
+  completed: number;
+  serviceLevel: string;
+  shippingType: string;
+  weight: number;
+  datetime: string; 
+}
 
 interface PostcodesIOResponse {
 	status: number;
@@ -274,8 +275,8 @@ async function handleCreateCheckoutSession(request: Request, env: Env): Promise<
 
     // Create a new order in your database
     const orderResult = await env.MY_DB.prepare(
-      `INSERT INTO orders (user, pickup, destination, price, completed, serviceLevel, shippingType, weight) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO orders (user, pickup, destination, price, completed, serviceLevel, shippingType, weight, datetime) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .bind(
       data.user,
@@ -285,7 +286,8 @@ async function handleCreateCheckoutSession(request: Request, env: Env): Promise<
       data.completed,
       data.serviceLevel,
       data.shippingType,
-      data.weight
+      data.weight,
+      data.datetime // Add this line
     )
     .run();
 
@@ -300,12 +302,12 @@ async function handleCreateCheckoutSession(request: Request, env: Env): Promise<
       line_items: [
         {
           price_data: {
-            currency: 'gbp', // Changed from 'usd' to 'gbp'
+            currency: 'gbp',
             product_data: {
               name: 'Parcel Delivery',
               description: `From ${data.pickup} to ${data.destination}`,
             },
-            unit_amount: Math.round(data.price * 100), // Stripe expects amount in pence
+            unit_amount: Math.round(data.price * 100),
           },
           quantity: 1,
         },
@@ -368,52 +370,53 @@ async function handleCreatePaymentIntent(request: Request, env: Env): Promise<Re
   }
 }
   
-  async function handleSubmitQuote(request: Request, env: Env): Promise<Response> {
-    try {
-      const data = await request.json() as QuoteData & { paymentIntentId: string };
-      
-      console.log('Received data:', JSON.stringify(data));
+async function handleSubmitQuote(request: Request, env: Env): Promise<Response> {
+  try {
+    const data = await request.json() as QuoteData & { paymentIntentId: string };
     
-      const result = await env.MY_DB.prepare(
-      `INSERT INTO orders (user, stripe_payment_intent_id, pickup, destination, price, completed, serviceLevel, shippingType, weight) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      )
-      .bind(
-      data.user,
-      data.paymentIntentId,
-      data.pickup,
-      data.destination,
-      data.price,
-      data.completed,
-      data.serviceLevel,
-      data.shippingType,
-      data.weight
-      )
-      .run();
-    
-      console.log('Database operation result:', JSON.stringify(result));
-    
-      if (result && result.meta && result.meta.changes === 1) {
-      return new Response(JSON.stringify({ success: true, orderId: result.meta.last_row_id }), {
-        headers: { 
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-        },
-      });
-      } else {
-      throw new Error("Failed to insert the order");
-      }
-    } catch (error) {
-      console.error("Error submitting quote:", error);
-      return new Response(JSON.stringify({ success: false, error: error instanceof Error ? error.message : String(error) }), {
-      status: 500,
+    console.log('Received data:', JSON.stringify(data));
+  
+    const result = await env.MY_DB.prepare(
+    `INSERT INTO orders (user, stripe_payment_intent_id, pickup, destination, price, completed, serviceLevel, shippingType, weight, datetime) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    )
+    .bind(
+    data.user,
+    data.paymentIntentId,
+    data.pickup,
+    data.destination,
+    data.price,
+    data.completed,
+    data.serviceLevel,
+    data.shippingType,
+    data.weight,
+    data.datetime // Add this line
+    )
+    .run();
+  
+    console.log('Database operation result:', JSON.stringify(result));
+  
+    if (result && result.meta && result.meta.changes === 1) {
+    return new Response(JSON.stringify({ success: true, orderId: result.meta.last_row_id }), {
       headers: { 
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*',
       },
-      });
+    });
+    } else {
+    throw new Error("Failed to insert the order");
     }
+  } catch (error) {
+    console.error("Error submitting quote:", error);
+    return new Response(JSON.stringify({ success: false, error: error instanceof Error ? error.message : String(error) }), {
+    status: 500,
+    headers: { 
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*',
+    },
+    });
   }
+}
 function isDistanceMatrixResponse(data: unknown): data is DistanceMatrixResponse {
 	if (typeof data !== 'object' || data === null) {
 	  return false;

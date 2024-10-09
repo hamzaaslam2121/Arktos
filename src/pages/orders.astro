@@ -1,5 +1,9 @@
 ---
+import { SignedOut, SignInButton, SignedIn, UserButton } from "@clerk/astro/components";
+import { Icon } from "astro-icon/components";
 import Header from "~/components/header.astro";
+import ThemeSwitcher from "~/components/theme-switcher.astro";
+
 import "~/styles/index.css";
 
 const auth = Astro.locals.auth();
@@ -15,6 +19,7 @@ interface Order {
   destination: string;
   price: number;
   completed: number;
+  datetime: string;  // Add this line
 }
 
 let orders: Order[] = [];
@@ -88,6 +93,9 @@ try {
         
         /* Light theme */
         [data-theme="light"] {
+            --header-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); /* Subtle shadow for light mode */
+            --header-bg: rgba(255, 255, 255, 0.65); /* Slightly transparent white */
+            --logo-color: #000000;
             --bg-primary: #ffffff;
             --bg-secondary: #f3f4f6;
             --text-primary: #111827;
@@ -102,10 +110,14 @@ try {
             --shadow-color: rgba(0, 0, 0, 0.1);
             --shadow: 0 4px 6px -1px var(--shadow-color),
                       0 2px 4px -1px var(--shadow-color);
+                      
         }
         
         /* Dark theme */
         [data-theme="dark"] {
+            --header-shadow: 0 1px 2px rgba(255, 255, 255, 0.047); /* Stronger shadow for dark mode */
+            --header-bg: rgba(17, 24, 39, 0.8); /* Slightly transparent dark */
+            --logo-color: #ffffff;
             --bg-primary: #111827;
             --bg-secondary: #1f2937;
             --text-primary: #f9fafb;
@@ -124,13 +136,28 @@ try {
                       0 0 0 1px var(--glow-color);
         }
 
-        
+        /* Header specific styles */
+        #page-header {
+            color: var(--logo-color);
+            box-shadow: var(--header-shadow);
+            background-color: var(--header-bg);
+            backdrop-filter: blur(8px);
+            transition: box-shadow 0.3s, background-color 0.3s, color 0.3s;
+        }
+        /* Style for the logo SVG */
+        #page-header svg {
+            fill: var(--logo-color);
+            transition: fill 0.3s;
+        }
         /* Applied styles */
         body {
             background-color: var(--bg-primary);
             color: var(--text-primary);
         }
-        
+        /* Main content spacing */
+        main {
+            padding-top: calc(4rem + 2rem) !important; /* Header height plus additional spacing */
+        }
         .gradient-text {
             /* Adjusted gradient to balance purple and pink */
             background: linear-gradient(135deg, 
@@ -142,6 +169,7 @@ try {
             color: transparent;
             font-size: 2.5rem;
             margin-bottom: 1.5rem;
+            margin-top: 1.5rem;
         }
         
         .orders-table {
@@ -212,7 +240,10 @@ try {
             color: var(--text-secondary);
             font-size: 1.25rem;
         }
-
+        .datetime {
+            white-space: nowrap;
+            font-size: 1rem;
+        }
         @media (max-width: 768px) {
             .orders-table {
                 font-size: 1.1rem;
@@ -222,11 +253,70 @@ try {
             .orders-table td {
                 padding: 1rem;
             }
+            .datetime {
+                font-size: 0.8rem;
+            }
+        }
+        /* Override ThemeSwitcher styles for orders page */
+        #theme-switcher {
+            margin-left: 0 !important;
+            transform: scale(1) !important;
         }
     </style>
 </head>
 <body class="h-full overflow-x-hidden">
-    <main class="container mx-auto px-10 py-20">
+    <header
+        id="page-header"
+        class="fixed top-0 z-20 flex w-full items-center justify-between border-b border-transparent px-8 py-4 bg-default"
+    >
+        <a class="flex items-center gap-3 hover:!text-default" href="/">
+            <h1 class="sr-only">Arknet</h1>
+            <Icon name="arknetAlogo" class="size-10" />
+            <Icon name="arknetnolog" class="hidden h-4 sm:block" />
+        </a>
+        
+        <div class="flex items-center gap-6">
+            <ThemeSwitcher />
+            <li class="list-none">
+                <SignedOut>
+                    <SignInButton mode="redirect" class="sign-in-button" style="font-size: 1.5rem;"/>
+                </SignedOut>
+                
+                <SignedIn>
+                    <div class="user-button-wrapper">
+                        <UserButton 
+                        appearance={{
+                            elements: {
+                            avatarBox: "h-10 w-10",
+                            card: "w-[400px] max-w-[85vw]", 
+                            },
+                            variables: {
+                            fontSize: "1.2",
+                            },
+                        }}
+                        showName={false}
+                        userProfileProps={{
+                            appearance: {
+                            elements: {
+                                rootBox: "w-full max-w-[800px] mx-auto",
+                                card: "shadow-none",
+                                navbar: "hidden",
+                            },
+                            variables: {
+                                fontSize: "1.5",
+                            },
+                            },
+                        }}
+                        />
+                    </div>
+                </SignedIn>
+            </li>
+            <nav></nav>
+
+        </div>
+        
+    </header>
+    <main class="container mx-auto px-20 py-20">
         <h1 class="gradient-text font-bold">Your Orders</h1>
         
         {error ? (
@@ -244,6 +334,7 @@ try {
                             <th>Delivery Address</th>
                             <th>Price</th>
                             <th>Status</th>
+                            <th>Date & Time</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -258,6 +349,18 @@ try {
                                         {order.completed ? 'Completed' : 'Pending'}
                                     </span>
                                 </td>
+                                <td class="datetime">
+                                    {order.datetime ? (
+                                        new Date(order.datetime).toLocaleString('en-GB', {
+                                            day: '2-digit',
+                                            month: '2-digit',
+                                            year: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                            hour12: false
+                                        })
+                                    ) : 'None'}
+                                </td>
                             </tr>
                         ))}
                     </tbody>
@@ -269,5 +372,28 @@ try {
             </div>
         )}
     </main>
+    <script>
+        // Ensure the theme switcher initializes and is visible
+        document.addEventListener('astro:page-load', () => {
+            const themeSwitcher = document.querySelector('#theme-switcher') as HTMLElement;
+            if (themeSwitcher) {
+                // Force the theme switcher to be visible
+                themeSwitcher.style.marginLeft = '10';
+                themeSwitcher.style.transform = 'scale(1)';
+            
+            // Initialize the theme
+            const currentTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            document.documentElement.dataset.theme = currentTheme;
+            
+            // Update the icon
+            const updateIcon = () => {
+              const theme = document.documentElement.dataset.theme;
+              document.querySelector(`#icon-theme-${theme}`)?.classList.add('hidden');
+              document.querySelector(`#icon-theme-${theme === 'light' ? 'dark' : 'light'}`)?.classList.remove('hidden');
+            };
+            updateIcon();
+          }
+        });
+      </script>
 </body>
 </html>
