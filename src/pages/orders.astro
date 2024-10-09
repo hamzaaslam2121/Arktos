@@ -270,6 +270,10 @@ try {
             white-space: nowrap;
             font-size: 1rem;
         }
+        /* Add padding below the table */
+        .orders-container {
+            padding-bottom: 5rem;
+        }
         @media (max-width: 768px) {
             .orders-table {
                 font-size: 1.1rem;
@@ -357,23 +361,20 @@ try {
                 <table class="orders-table">
                     <thead>
                         <tr>
-                            <th>Delivery Address</th>
-                            <th>Price</th>
-                            <th>Status</th>
-                            <th class="sortable" data-sort="datetime">
-                                Date & Time
-                                <span class="sort-icon"></span>
-                            </th>
+                            <th class="sortable" data-sort="address">Delivery Address <span class="sort-icon"></span></th>
+                            <th class="sortable" data-sort="price">Price <span class="sort-icon"></span></th>
+                            <th class="sortable" data-sort="status">Status <span class="sort-icon"></span></th>
+                            <th class="sortable" data-sort="datetime">Date & Time <span class="sort-icon"></span></th>
                         </tr>
                     </thead>
                     <tbody>
                         {orders.map((order) => (
                             <tr>
-                                <td>{order.destination}</td>
-                                <td>
+                                <td data-address={order.destination}>{order.destination}</td>
+                                <td data-price={order.price.toFixed(2)}>
                                     <span class="price">£{order.price.toFixed(2)}</span>
                                 </td>
-                                <td>
+                                <td data-status={order.completed ? 'Completed' : 'Pending'}>
                                     <span class={`status-badge ${order.completed ? 'completed' : 'pending'}`}>
                                         {order.completed ? 'Completed' : 'Pending'}
                                     </span>
@@ -424,7 +425,31 @@ try {
             updateIcon();
           }        
     });
+        // Function to sort the table by datetime, most recent first
+        function initialSortTable() {
+            const table = document.querySelector('.orders-table') as HTMLTableElement;
+            if (!table) return;
 
+            const tbody = table.querySelector('tbody');
+            if (!tbody) return;
+
+            const rows = Array.from(tbody.querySelectorAll('tr')) as HTMLTableRowElement[];
+            
+            rows.sort((a, b) => sortByColumn(b, a, 'datetime', true)); // Note: We use 'b' before 'a' for descending order
+            
+            // Clear and re-append sorted rows
+            tbody.innerHTML = '';
+            rows.forEach(row => tbody.appendChild(row));
+
+            // Update the sort icon
+            const datetimeHeader = table.querySelector('th[data-sort="datetime"]');
+            if (datetimeHeader) {
+                const sortIcon = datetimeHeader.querySelector('.sort-icon');
+                if (sortIcon) {
+                    sortIcon.classList.add('desc');
+                }
+            }
+        }
     // Helper function to parse date strings
     function parseDate(dateString: string | null): Date | null {
         if (!dateString) return null;
@@ -432,28 +457,45 @@ try {
         // Parse the ISO date string directly
         return new Date(dateString);
     }
+    // Helper function to parse price strings
+    function parsePrice(priceString: string | null): number {
+        if (!priceString) return 0;
+        return parseFloat(priceString.replace(/[^0-9.-]+/g, ""));
+    }
 
-    // Sorting function
-    function sortByDateTime(a: HTMLTableRowElement, b: HTMLTableRowElement, isAscending: boolean): number {
-        const aCell = a.querySelector('td[data-datetime]');
-        const bCell = b.querySelector('td[data-datetime]');
+    // Sorting function for different types of data
+    function sortByColumn(a: HTMLTableRowElement, b: HTMLTableRowElement, sortKey: string, isAscending: boolean): number {
+        const aCell = a.querySelector(`td[data-${sortKey}]`);
+        const bCell = b.querySelector(`td[data-${sortKey}]`);
         
-        const aValue = aCell?.getAttribute('data-datetime') || null;
-        const bValue = bCell?.getAttribute('data-datetime') || null;
+        const aValue = aCell?.getAttribute(`data-${sortKey}`) || aCell?.textContent?.trim() || '';
+        const bValue = bCell?.getAttribute(`data-${sortKey}`) || bCell?.textContent?.trim() || '';
         
-        // Parse the date strings into Date objects
-        const aDate = parseDate(aValue);
-        const bDate = parseDate(bValue);
+        let comparison = 0;
         
-        // Handle cases where one or both values are null
-        if (!aDate && !bDate) return 0;
-        if (!aDate) return isAscending ? -1: 1;
-        if (!bDate) return isAscending ? 1: -1;
+        switch (sortKey) {
+            case 'datetime':
+            const aDate = parseDate(aValue);
+            const bDate = parseDate(bValue);
+            if (!aDate && !bDate) return 0;
+            if (!aDate) return isAscending ? -1 : 1; // Treat null dates as oldest
+            if (!bDate) return isAscending ? 1 : -1; // Treat null dates as oldest
+            comparison = aDate.getTime() - bDate.getTime();
+            break;
+            case 'price':
+                comparison = parsePrice(aValue) - parsePrice(bValue);
+                break;
+            case 'status':
+            case 'address':
+                comparison = aValue.localeCompare(bValue);
+                break;
+            default:
+                comparison = aValue.localeCompare(bValue);
+        }
         
-        // Compare the dates
-        const comparison = aDate.getTime() - bDate.getTime();
         return isAscending ? comparison : -comparison;
     }
+
 
     // Function to add click event to the table
     function addTableClickEvent() {
@@ -478,28 +520,26 @@ try {
                 sortIcon.classList.toggle('asc', isAscending);
                 sortIcon.classList.toggle('desc', !isAscending);
                 
+                // Remove sorting classes from other headers
+                table.querySelectorAll('th.sortable').forEach(th => {
+                    if (th !== header) {
+                        th.querySelector('.sort-icon')?.classList.remove('asc', 'desc');
+                    }
+                });
+                
                 // Sort the table
                 const tbody = table.querySelector('tbody');
                 if (!tbody) return;
 
                 const rows = Array.from(tbody.querySelectorAll('tr')) as HTMLTableRowElement[];
                 
-                rows.sort((a, b) => {
-                    if (sortKey === 'datetime') {
-                        return sortByDateTime(a, b, isAscending);
-                    } else {
-                        // For non-date columns, use string comparison
-                        const aValue = a.querySelector(`td[data-${sortKey}]`)?.textContent?.trim() || '';
-                        const bValue = b.querySelector(`td[data-${sortKey}]`)?.textContent?.trim() || '';
-                        
-                        return isAscending ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
-                    }
-                });
+                rows.sort((a, b) => sortByColumn(a, b, sortKey, isAscending));
                 
                 // Clear and re-append sorted rows
                 tbody.innerHTML = '';
                 rows.forEach(row => tbody.appendChild(row));
             });
+            initialSortTable();
         } else {
             console.log("Table not found");
         }
@@ -522,6 +562,7 @@ try {
   setTimeout(() => {
     console.log("6. Timeout fired after 2 seconds");
     addTableClickEvent();
+    initialSortTable();
   }, 2000);
       </script>
 </body>
