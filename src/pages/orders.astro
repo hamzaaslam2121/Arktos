@@ -1,5 +1,6 @@
 ---
 import { SignedOut, SignInButton, SignedIn, UserButton } from "@clerk/astro/components";
+
 import { Icon } from "astro-icon/components";
 import Header from "~/components/header.astro";
 import ThemeSwitcher from "~/components/theme-switcher.astro";
@@ -309,8 +310,7 @@ try {
             <ThemeSwitcher />
             <li class="list-none">
                 <SignedOut>
-                    <SignInButton mode="redirect" class="sign-in-button" style="font-size: 1.5rem;"/>
-                </SignedOut>
+                  </SignedOut>
                 
                 <SignedIn>
                     <div class="user-button-wrapper">
