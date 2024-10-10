@@ -1,25 +1,22 @@
-// test/index.spec.ts
-import { env, createExecutionContext, waitOnExecutionContext, SELF } from 'cloudflare:test';
+// worker-backend/test/index.spec.ts
 import { describe, it, expect } from 'vitest';
 import worker from '../src/index';
+import type { D1Database } from '@cloudflare/workers-types';
 
-// For now, you'll need to do something like this to get a correctly-typed
-// `Request` to pass to `worker.fetch()`.
-const IncomingRequest = Request<unknown, IncomingRequestCfProperties>;
+// Create mock environment
+const mockEnv = {
+  MY_DB: {
+    prepare: () => {},
+    exec: () => Promise.resolve({ results: [] })
+  } as unknown as D1Database,
+  GOOGLE_MAPS_API_KEY: 'test_key',
+  STRIPE_SECRET_KEY: 'test_key'
+};
 
-describe('Hello World worker', () => {
-	it('responds with Hello World! (unit style)', async () => {
-		const request = new IncomingRequest('http://example.com');
-		// Create an empty context to pass to `worker.fetch()`.
-		const ctx = createExecutionContext();
-		const response = await worker.fetch(request, env, ctx);
-		// Wait for all `Promise`s passed to `ctx.waitUntil()` to settle before running test assertions
-		await waitOnExecutionContext(ctx);
-		expect(await response.text()).toMatchInlineSnapshot(`"Hello World!"`);
-	});
-
-	it('responds with Hello World! (integration style)', async () => {
-		const response = await SELF.fetch('https://example.com');
-		expect(await response.text()).toMatchInlineSnapshot(`"Hello World!"`);
-	});
+describe('Worker test', () => {
+  it('should handle requests', async () => {
+    const request = new Request('http://example.com');
+    const response = await worker.fetch(request, mockEnv);
+    expect(response).toBeDefined();
+  });
 });

@@ -1,4 +1,4 @@
-import { D1Database, D1Result } from '@cloudflare/workers-types';
+import { D1Database } from '@cloudflare/workers-types';
 import Stripe from 'stripe';
 interface Env {
   MY_DB: D1Database;
