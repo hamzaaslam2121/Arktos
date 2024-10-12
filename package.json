@@ -15,6 +15,7 @@
   },
   "devDependencies": {
     "@astrojs/tailwind": "^5.1.0",
+    "@clerk/fastify": "latest",
     "@cloudflare/vitest-pool-workers": "^0.5.16",
     "@cloudflare/workers-types": "^4.20241004.0",
     "@iconify-json/fa-brands": "^1.1.8",
