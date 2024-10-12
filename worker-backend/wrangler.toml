@@ -7,7 +7,7 @@ compatibility_flags = ["nodejs_compat"]
 account_id = "7939b0fd79672cd02e8be513c9578de7"
 
 [env.production]
-route = "https://your-domain.com/*"
+route = "https://arknetcouriers.co.uk/*"
 zone_id = "8910e020ac3ffa503d8409992961dc85"
 
 [vars]
