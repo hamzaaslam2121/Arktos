@@ -1,25 +1,73 @@
-// test/index.spec.ts
-import { env, createExecutionContext, waitOnExecutionContext, SELF } from 'cloudflare:test';
-import { describe, it, expect } from 'vitest';
-import worker from '../src/index';
+import { describe, it, expect, vi } from 'vitest';
 
-// For now, you'll need to do something like this to get a correctly-typed
-// `Request` to pass to `worker.fetch()`.
-const IncomingRequest = Request<unknown, IncomingRequestCfProperties>;
+// Mock the global scope to simulate Cloudflare Workers environment
+const mockAddEventListener = vi.fn();
+const mockFetch = vi.fn();
+(global as any).addEventListener = mockAddEventListener;
+(global as any).fetch = mockFetch;
 
-describe('Hello World worker', () => {
-	it('responds with Hello World! (unit style)', async () => {
-		const request = new IncomingRequest('http://example.com');
-		// Create an empty context to pass to `worker.fetch()`.
-		const ctx = createExecutionContext();
-		const response = await worker.fetch(request, env, ctx);
-		// Wait for all `Promise`s passed to `ctx.waitUntil()` to settle before running test assertions
-		await waitOnExecutionContext(ctx);
-		expect(await response.text()).toMatchInlineSnapshot(`"Hello World!"`);
-	});
+// Import the worker script
+import '../src/index';
 
-	it('responds with Hello World! (integration style)', async () => {
-		const response = await SELF.fetch('https://example.com');
-		expect(await response.text()).toMatchInlineSnapshot(`"Hello World!"`);
-	});
+// Extract the event listener callback
+const getEventListener = () => {
+  const call = mockAddEventListener.mock.calls.find(call => call[0] === 'fetch');
+  return call ? call[1] : null;
+};
+
+describe('Cloudflare Worker', () => {
+  it('handles API requests', async () => {
+    const listener = getEventListener();
+    expect(listener).toBeTruthy();
+
+    const request = new Request('http://example.com/api/hello');
+    const respondWithMock = vi.fn();
+    const event = { request, respondWith: respondWithMock };
+
+    listener(event);
+
+    const response = await respondWithMock.mock.calls[0][0];
+    
+    expect(response.status).toBe(200);
+    expect(response.headers.get('Content-Type')).toBe('application/json');
+    expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
+    
+    const body = await response.json();
+    expect(body).toEqual({ message: 'Hello from Cloudflare Worker!' });
+  });
+
+  it('handles non-API requests', async () => {
+    const listener = getEventListener();
+    expect(listener).toBeTruthy();
+
+    const request = new Request('http://example.com');
+    const respondWithMock = vi.fn();
+    const event = { request, respondWith: respondWithMock };
+    
+    // Mock the global fetch function
+    mockFetch.mockResolvedValue(new Response('Mocked response'));
+
+    listener(event);
+
+    const response = await respondWithMock.mock.calls[0][0];
+    
+    expect(mockFetch).toHaveBeenCalledWith(request);
+    expect(await response.text()).toBe('Mocked response');
+  });
+
+  it('handles 404 for unknown API routes', async () => {
+    const listener = getEventListener();
+    expect(listener).toBeTruthy();
+
+    const request = new Request('http://example.com/api/unknown');
+    const respondWithMock = vi.fn();
+    const event = { request, respondWith: respondWithMock };
+
+    listener(event);
+
+    const response = await respondWithMock.mock.calls[0][0];
+    
+    expect(response.status).toBe(404);
+    expect(await response.text()).toBe('Not Found');
+  });
 });
