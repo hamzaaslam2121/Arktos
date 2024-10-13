@@ -2,6 +2,7 @@
 import { Icon } from "astro-icon/components";
 import ThemeSwitcher from "~/components/theme-switcher.astro";
 import type { NavItem } from "~/types";
+import { SignedIn, SignedOut, UserButton, SignInButton, SignIn } from "@clerk/astro/components";
 
 const navItems: Array<NavItem> = [
   { title: "Why use Arknet?", url: "#features" },
@@ -32,6 +33,49 @@ const navItems: Array<NavItem> = [
               </li>
             ))
           }
+          <nav></nav>
+          <li>
+            <SignedOut>
+              <SignInButton mode="redirect" class="sign-in-button" style="font-size: 1.5rem;"/>
+            </SignedOut>
+            
+            
+            <SignedIn>
+              <div class="user-button-wrapper"> <UserButton 
+                appearance={{
+                  elements: {
+                    avatarBox: "h-10 w-10",
+                    card: "w-[400px] max-w-[85vw]", 
+                  },
+                  variables: {
+                    fontSize: "1.2",
+                  },
+                }}
+                showName={false}
+                userProfileProps={{
+                  appearance: {
+                    elements: {
+                      rootBox: "w-full max-w-[800px] mx-auto",
+                      card: "shadow-none",
+                      navbar: "hidden",
+                      // Add more custom styles for the UserProfile popup here
+                    },
+                    variables: {
+                    // Adjust global variables if available
+                    fontSize: "1.2",
+                  },
+                  },
+                  
+                }}
+              /> </div> 
+              
+            </SignedIn>
+          </li>
+          <SignedIn>             <nav></nav>
+          </SignedIn>
+          <SignedOut>
+            <nav></nav>
+          </SignedOut>
         </ul>
       </nav>
       <button
