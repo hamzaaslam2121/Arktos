@@ -1,6 +1,6 @@
-import { defineConfig } from 'astro/config';
 import tailwind from "@astrojs/tailwind";
 import icon from "astro-icon";
+import { defineConfig } from "astro/config";
 import cloudflare from "@astrojs/cloudflare";
 import clerk from "@clerk/astro";
 
@@ -13,11 +13,8 @@ export default defineConfig({
       iconDirectory: 'src/icons',
     })
   ],
-  output: "server",
-  adapter: cloudflare({
-    mode: 'directory',
-    functionPerRoute: true
-  }),
+  adapter: cloudflare(),
+  output: "static", // Switch back to static output
   vite: {
     ssr: {
       noExternal: ['@clerk/clerk-js']
