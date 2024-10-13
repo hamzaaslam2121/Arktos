@@ -12,8 +12,6 @@ export default defineConfig({
       iconDirectory: 'src/icons', // Ensure this path is correct based on your project structure
     })
   ],
-  adapter: node({ mode: "standalone" }),
-  output: "server",
   vite: {
     server: {
       proxy: {
