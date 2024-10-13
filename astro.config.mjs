@@ -14,7 +14,7 @@ export default defineConfig({
     })
   ],
   adapter: cloudflare(),
-  output: "static", // Switch back to static output
+  output: "server", // Set to "server" as required by Cloudflare adapter
   vite: {
     ssr: {
       noExternal: ['@clerk/clerk-js']
