@@ -7499,7 +7499,10 @@ async function handleApiRequest(pathname, request, env) {
     return new Response(responseData, {
       headers: {
         "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*"
+        "Access-Control-Allow-Origin": "https://arknetcouriers.co.uk",
+        // Fixed typo here
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Max-Age": "86400"
       }
     });
   }
