@@ -9,7 +9,7 @@
     "dev": "astro dev",
     "start": "astro dev",
     "check": "astro check",
-    "build": "astro build",
+    "build": "astro build && cp server.js dist/",
     "preview": "astro preview",
     "astro": "astro",
     "format": "prettier --write **/*.astro .",

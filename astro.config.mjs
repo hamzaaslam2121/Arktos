@@ -17,5 +17,10 @@ export default defineConfig({
   adapter: cloudflare({
     mode: 'directory',
     functionPerRoute: true
-  })
+  }),
+  vite: {
+    ssr: {
+      noExternal: ['@clerk/clerk-js']
+    }
+  }
 });
