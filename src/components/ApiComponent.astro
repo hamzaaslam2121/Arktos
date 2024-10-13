@@ -4,7 +4,7 @@ let data = null;
 const fetchData = async () => {
   try {
     // Use the local Worker URL when in development
-    const workerUrl = import.meta.env.DEV ? 'http://localhost:8787' : '';
+    const workerUrl = import.meta.env.DEV ? 'http://localhost:8787' : 'https://arknetcouriers.co.uk/';
     const response = await fetch(`${workerUrl}/api/hello`);
     data = await response.json();
   } catch (error) {
