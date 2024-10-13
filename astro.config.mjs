@@ -1,6 +1,6 @@
+import { defineConfig } from 'astro/config';
 import tailwind from "@astrojs/tailwind";
 import icon from "astro-icon";
-import { defineConfig } from "astro/config";
 import cloudflare from "@astrojs/cloudflare";
 import clerk from "@clerk/astro";
 
@@ -15,6 +15,7 @@ export default defineConfig({
   ],
   output: "server",
   adapter: cloudflare({
-    mode: "directory"
+    mode: 'directory',
+    functionPerRoute: true
   })
 });
