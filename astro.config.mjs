@@ -7,6 +7,7 @@ import clerk from "@clerk/astro";
 export default defineConfig({
   site: "https://astro-moon-landing.netlify.app/",
   integrations: [
+    clerk(),
     tailwind(),
     icon({
       iconDirectory: 'src/icons', // Ensure this path is correct based on your project structure
@@ -15,7 +16,7 @@ export default defineConfig({
   vite: {
     server: {
       proxy: {
-        '/api': 'http://localhost:8787', // Proxy API requests to the Cloudflare Worker
+        '/api': 'http://localhost:8787/', // Proxy API requests to the Cloudflare Worker
       },
     },
   },
