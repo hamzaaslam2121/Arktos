@@ -13,10 +13,11 @@ export default defineConfig({
       iconDirectory: 'src/icons', // Ensure this path is correct based on your project structure
     })
   ],
+  output: "server",
   vite: {
     server: {
       proxy: {
-        '/api': 'http://localhost:8787/', // Proxy API requests to the Cloudflare Worker
+        '/api': 'http://localhost:8787', // Proxy API requests to the Cloudflare Worker
       },
     },
   },
