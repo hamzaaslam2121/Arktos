@@ -5,7 +5,7 @@ import node from "@astrojs/node";
 import clerk from "@clerk/astro";
 // https://astro.build/config
 export default defineConfig({
-  site: "https://astro-moon-landing.netlify.app/",
+  site: "https://arknetcouriers.co.uk/",
   integrations: [
     clerk(),
     tailwind(),
@@ -16,7 +16,7 @@ export default defineConfig({
   vite: {
     server: {
       proxy: {
-        '/api': 'http://localhost:8787/', // Proxy API requests to the Cloudflare Worker
+        '/api': 'worker-backend.hamzaaslam2121.workers.dev', // Proxy API requests to the Cloudflare Worker
       },
     },
   },
