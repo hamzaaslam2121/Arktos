@@ -57,16 +57,22 @@ export default {
 
 async function handleApiRequest(pathname: string, request: Request, env: Env): Promise<Response> {
   // Common headers for all API responses
-  const headers = {
-    'Content-Type': 'application/json',
+  const corsHeaders = {
     'Access-Control-Allow-Origin': 'https://arknetcouriers.co.uk',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
     'Access-Control-Max-Age': '86400',
   };
   // Handle OPTIONS requests for CORS preflight
   if (request.method === 'OPTIONS') {
-    return new Response(null, { headers });
+    return new Response(null, { headers: corsHeaders });
   }
+    // Add CORS headers to all responses
+    const headers = {
+      ...corsHeaders,
+      'Content-Type': 'application/json',
+    };
+  
 	if (pathname === '/api/submit-quote' && request.method === 'POST') {
 	  try {
       const { results } = await env.MY_DB.prepare("PRAGMA table_info(orders)").all();
@@ -252,99 +258,76 @@ async function handleApiRequest(pathname: string, request: Request, env: Env): P
     return handleSubmitQuote(request, env);
   }
   if (pathname === '/api/create-checkout-session' && request.method === 'POST') {
-    return handleCreateCheckoutSession(request, env);
+    return handleCreateCheckoutSession(request, env, headers);
   }
   // Default return for unmatched routes
   return new Response('Not Found', { status: 404, headers });
 }
-async function handleCreateCheckoutSession(request: Request, env: Env): Promise<Response> {
-  const corsHeaders = {
-    'Access-Control-Allow-Origin': 'https://arknetcouriers.co.uk',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Max-Age': '86400',
-  };
+async function handleCreateCheckoutSession(request: Request, env: Env, headers: HeadersInit): Promise<Response> {
+  if (request.method !== 'POST') {
+    return new Response('Method Not Allowed', { status: 405, headers });
+  }
 
-  // Handle preflight request
-  if (request.method === 'OPTIONS') {
-    return new Response(null, {
-      headers: corsHeaders,
+  try {
+    const stripe = new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' as Stripe.LatestApiVersion });
+    const data = await request.json() as QuoteData;
+
+    // Create a new order in your database
+    const orderResult = await env.MY_DB.prepare(
+      `INSERT INTO orders (user, pickup, destination, price, completed, serviceLevel, shippingType, weight, datetime)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    )
+    .bind(
+      data.user,
+      data.pickup,
+      data.destination,
+      data.price,
+      data.completed,
+      data.serviceLevel,
+      data.shippingType,
+      data.weight,
+      data.datetime
+    )
+    .run();
+
+    if (!orderResult || !orderResult.meta || orderResult.meta.changes !== 1) {
+      throw new Error("Failed to insert the order");
+    }
+
+    const orderId = orderResult.meta.last_row_id;
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price_data: {
+            currency: 'gbp',
+            product_data: {
+              name: 'Parcel Delivery',
+              description: `From ${data.pickup} to ${data.destination}`,
+            },
+            unit_amount: Math.round(data.price * 100),
+          },
+          quantity: 1,
+        },
+      ],
+      mode: 'payment',
+      success_url: `${request.headers.get('Origin')}/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${request.headers.get('Origin')}/quickquote`,
+      metadata: {
+        orderId: orderId.toString(),
+      },
+    });
+
+    return new Response(JSON.stringify({ sessionId: session.id, url: session.url }), { headers });
+  } catch (error) {
+    console.error("Error creating checkout session:", error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return new Response(JSON.stringify({ error: 'Failed to create checkout session', details: errorMessage }), {
+      status: 500,
+      headers,
     });
   }
-
-  // Actual request handling
-  if (request.method === 'POST') {
-    const headers = {
-      ...corsHeaders,
-      'Content-Type': 'application/json',
-    };
-
-    try {
-      const stripe = new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' as Stripe.LatestApiVersion });
-      const data = await request.json() as QuoteData;
-
-      // Create a new order in your database
-      const orderResult = await env.MY_DB.prepare(
-        `INSERT INTO orders (user, pickup, destination, price, completed, serviceLevel, shippingType, weight, datetime)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      )
-      .bind(
-        data.user,
-        data.pickup,
-        data.destination,
-        data.price,
-        data.completed,
-        data.serviceLevel,
-        data.shippingType,
-        data.weight,
-        data.datetime
-      )
-      .run();
-
-      if (!orderResult || !orderResult.meta || orderResult.meta.changes !== 1) {
-        throw new Error("Failed to insert the order");
-      }
-
-      const orderId = orderResult.meta.last_row_id;
-
-      const session = await stripe.checkout.sessions.create({
-        payment_method_types: ['card'],
-        line_items: [
-          {
-            price_data: {
-              currency: 'gbp',
-              product_data: {
-                name: 'Parcel Delivery',
-                description: `From ${data.pickup} to ${data.destination}`,
-              },
-              unit_amount: Math.round(data.price * 100),
-            },
-            quantity: 1,
-          },
-        ],
-        mode: 'payment',
-        success_url: `${request.headers.get('Origin')}/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${request.headers.get('Origin')}/quickquote`,
-        metadata: {
-          orderId: orderId.toString(),
-        },
-      });
-
-      return new Response(JSON.stringify({ sessionId: session.id }), { headers });
-    } catch (error) {
-      console.error("Error creating checkout session:", error);
-      return new Response(JSON.stringify({ error: 'Failed to create checkout session' }), {
-        status: 500,
-        headers,
-      });
-    }
-  }
-
-  // If neither OPTIONS nor POST, return method not allowed
-  return new Response('Method Not Allowed', {
-    status: 405,
-    headers: corsHeaders,
-  });
 }
 
 // Update the payment intent handler as well
