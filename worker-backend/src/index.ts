@@ -1,5 +1,9 @@
 import { D1Database } from '@cloudflare/workers-types';
 import Stripe from 'stripe';
+
+
+
+
 interface Env {
   MY_DB: D1Database;
   GOOGLE_MAPS_API_KEY: string; 
@@ -58,7 +62,7 @@ export default {
 async function handleApiRequest(pathname: string, request: Request, env: Env): Promise<Response> {
   // Common headers for all API responses
   const corsHeaders = {
-    'Access-Control-Allow-Origin': 'https://arknetcouriers.co.uk',
+    'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
     'Access-Control-Max-Age': '86400',
@@ -324,7 +328,7 @@ async function handleCreateCheckoutSession(request: Request, env: Env, headers: 
     return new Response(JSON.stringify({ sessionId: session.id, url: session.url }), {
       headers: {
         ...headers,
-        'Access-Control-Allow-Origin': 'https://arknetcouriers.co.uk',  // Add this
+        'Access-Control-Allow-Origin': '*',  // Add this
         'Access-Control-Allow-Methods': 'POST, OPTIONS',  // Allow the necessary methods
         'Access-Control-Allow-Headers': 'Content-Type',  // Add the required headers
       }
@@ -336,7 +340,7 @@ async function handleCreateCheckoutSession(request: Request, env: Env, headers: 
       status: 500,
       headers: {
         ...headers,
-        'Access-Control-Allow-Origin': 'https://arknetcouriers.co.uk',  // Add this to error response as well
+        'Access-Control-Allow-Origin': '*',  // Add this to error response as well
       },
     });
   }
