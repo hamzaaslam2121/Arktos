@@ -154,6 +154,9 @@ console.log("Current user ID:", userId);
 <script src="https://js.stripe.com/v3/"></script>
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDQAS10PACxUcHOp-46b10e6Etfrguxato&libraries=places"></script>
 <script>
+  const apiBaseUrl = import.meta.env.MODE === 'production' 
+  ? 'https://worker-backend.hamzaaslam2121.workers.dev'
+  : '';
   import { Clerk } from '@clerk/clerk-js';
   
   document.addEventListener('DOMContentLoaded', async () => {
@@ -210,7 +213,7 @@ console.log("Current user ID:", userId);
       }
 
       try {
-        const response = await fetch(`/api/postcode-suggestions?q=${encodeURIComponent(query)}`);
+        const response = await fetch(`${apiBaseUrl}/api/postcode-suggestions?q=${encodeURIComponent(query)}`);
         if (!response.ok) throw new Error('Failed to fetch suggestions');
         
         const suggestions: string[] = await response.json();
@@ -242,7 +245,7 @@ console.log("Current user ID:", userId);
       
       if (pickup && destination) {
         try {
-          const response = await fetch(`/api/calculate-distance?origin=${encodeURIComponent(pickup)}&destination=${encodeURIComponent(destination)}`);
+          const response = await fetch(`${apiBaseUrl}/api/calculate-distance?origin=${encodeURIComponent(pickup)}&destination=${encodeURIComponent(destination)}`);
           if (!response.ok) throw new Error(`Failed to calculate distance: ${response.status} ${response.statusText}`);
           
           const data = await response.json();
@@ -316,7 +319,7 @@ console.log("Current user ID:", userId);
       }
     }
     function pingServer() {
-      fetch('/api/ping')
+      fetch(`${apiBaseUrl}/api/ping`)
         .then(response => response.json())
         .catch(error => console.error('Ping failed:', error));
     }
@@ -393,7 +396,7 @@ console.log("Current user ID:", userId);
       console.log('Submitting form data:', formData);
 
       try {
-        const response = await fetch('/api/create-checkout-session', {
+        const response = await fetch(`${apiBaseUrl}/api/create-checkout-session`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
