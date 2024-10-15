@@ -56,56 +56,65 @@ export default {
 };
 
 async function handleApiRequest(pathname: string, request: Request, env: Env): Promise<Response> {
+  // Common headers for all API responses
+  const headers = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': 'https://arknetcouriers.co.uk',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Max-Age': '86400',
+  };
+  // Handle OPTIONS requests for CORS preflight
+  if (request.method === 'OPTIONS') {
+    return new Response(null, { headers });
+  }
 	if (pathname === '/api/submit-quote' && request.method === 'POST') {
 	  try {
-		const { results } = await env.MY_DB.prepare("PRAGMA table_info(orders)").all();
-		console.log('Table schema:', JSON.stringify(results));
-  
-		const data = await request.json() as QuoteData;
-		
-		console.log('Received data:', JSON.stringify(data));			
-  
-		const result = await env.MY_DB.prepare(
-		  `INSERT INTO orders (user, stripe_price_id, pickup, destination, price, completed, serviceLevel, shippingType, weight) 
-		   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-		)
-		.bind(
-		  data.user,
-		  null, // stripe_price_id
-		  data.pickup,
-		  data.destination,
-		  data.price,
-		  data.completed,
-		  data.serviceLevel,
-		  data.shippingType,
-		  data.weight
-		)
-		.run();
-  
-		console.log('Database operation result:', JSON.stringify(result));
-  
-		if (result && result.meta && result.meta.changes === 1) {
-		  return new Response(JSON.stringify({ success: true, orderId: result.meta.last_row_id }), {
-			headers: { 
-			  'Content-Type': 'application/json',
-			  'Access-Control-Allow-Origin': '*',
-			},
-		  });
-		} else {
-		  throw new Error("Failed to insert the order");
-		}
-		
-	} catch (error) {
-		console.error("Error submitting quote:", error);
-		return new Response(JSON.stringify({ success: false, error: error instanceof Error ? error.message : String(error) }), {
-		  status: 500,
-		  headers: { 
-			'Content-Type': 'application/json',
-			'Access-Control-Allow-Origin': '*',
-		  },
-		});
-	}
-}
+      const { results } = await env.MY_DB.prepare("PRAGMA table_info(orders)").all();
+      console.log('Table schema:', JSON.stringify(results));
+    
+      const data = await request.json() as QuoteData;
+      
+      console.log('Received data:', JSON.stringify(data));			
+    
+      const result = await env.MY_DB.prepare(
+        `INSERT INTO orders (user, stripe_price_id, pickup, destination, price, completed, serviceLevel, shippingType, weight) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      )
+      .bind(
+        data.user,
+        null, // stripe_price_id
+        data.pickup,
+        data.destination,
+        data.price,
+        data.completed,
+        data.serviceLevel,
+        data.shippingType,
+        data.weight
+      )
+      .run();
+    
+      console.log('Database operation result:', JSON.stringify(result));
+    
+      if (result && result.meta && result.meta.changes === 1) {
+        return new Response(JSON.stringify({ success: true, orderId: result.meta.last_row_id }), {
+        headers: { 
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        },
+        });
+      } else {
+        throw new Error("Failed to insert the order");
+      }
+      return new Response(JSON.stringify({ success: true, orderId: result.meta.last_row_id }), { headers });
+    } catch (error) {
+      console.error("Error submitting quote:", error);
+      return new Response(JSON.stringify({ success: false, error: error instanceof Error ? error.message : String(error) }), {
+        status: 500,
+        headers,
+      });
+    }
+  }
+
 
   // Your existing /api/hello route
   if (pathname === '/api/hello') {
@@ -122,23 +131,16 @@ async function handleApiRequest(pathname: string, request: Request, env: Env): P
   if (pathname === '/api/orders') {
     try {
       const { results } = await env.MY_DB.prepare("SELECT * FROM orders").all();
-      return new Response(JSON.stringify(results), {
-        headers: { 
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
-      });
+      return new Response(JSON.stringify(results), { headers });
     } catch (error) {
       console.error("Error fetching orders:", error);
       return new Response(JSON.stringify({ error: 'Failed to fetch orders' }), {
         status: 500,
-        headers: { 
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
+        headers,
       });
     }
   }
+
 
   if (pathname === '/api/postcode-suggestions') {
     const url = new URL(request.url);
@@ -179,14 +181,12 @@ async function handleApiRequest(pathname: string, request: Request, env: Env): P
           'Access-Control-Allow-Origin': '*',
         },
       });
+      return new Response(JSON.stringify(suggestions), { headers });
     } catch (error) {
       console.error("Error fetching postcode suggestions:", error);
       return new Response(JSON.stringify({ error: 'Failed to fetch postcode suggestions' }), {
         status: 500,
-        headers: { 
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
+        headers,
       });
     }
   }
@@ -230,30 +230,17 @@ async function handleApiRequest(pathname: string, request: Request, env: Env): P
       return new Response(JSON.stringify({ 
         distance: distanceInMiles.toFixed(2),
         unit: 'miles'
-      }), {
-        headers: { 
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
-      });
+      }), { headers });
     } catch (error) {
       console.error("Error calculating distance:", error);
       return new Response(JSON.stringify({ error: 'Failed to calculate distance' }), {
         status: 500,
-        headers: { 
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
+        headers,
       });
     }
   }
   if (pathname === '/api/ping') {
-    return new Response(JSON.stringify({ status: 'ok' }), {
-      headers: { 
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
-    });
+    return new Response(JSON.stringify({ status: 'ok' }), { headers });
   }
   // Add new Stripe-related routes
   if (pathname === '/api/create-payment-intent' && request.method === 'POST') {
@@ -268,9 +255,16 @@ async function handleApiRequest(pathname: string, request: Request, env: Env): P
     return handleCreateCheckoutSession(request, env);
   }
   // Default return for unmatched routes
-  return new Response('Not Found', { status: 404 });
+  return new Response('Not Found', { status: 404, headers });
 }
 async function handleCreateCheckoutSession(request: Request, env: Env): Promise<Response> {
+  const headers = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': 'https://arknetcouriers.co.uk',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Max-Age': '86400',
+  };
+
   try {
     const stripe = new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' as Stripe.LatestApiVersion});
     const data = await request.json() as QuoteData;
@@ -322,25 +316,23 @@ async function handleCreateCheckoutSession(request: Request, env: Env): Promise<
       },
     });
 
-    return new Response(JSON.stringify({ sessionId: session.id }), {
-      headers: { 
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
-    });
+    return new Response(JSON.stringify({ sessionId: session.id }), { headers });
   } catch (error) {
     console.error("Error creating checkout session:", error);
     return new Response(JSON.stringify({ error: 'Failed to create checkout session' }), {
       status: 500,
-      headers: { 
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
+      headers,
     });
   }
 }
 // Update the payment intent handler as well
 async function handleCreatePaymentIntent(request: Request, env: Env): Promise<Response> {
+  const headers = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': 'https://arknetcouriers.co.uk',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Max-Age': '86400',
+  };
   try {
     const stripe = new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' as Stripe.LatestApiVersion});
     const body = await request.json() as { price: number };
@@ -354,25 +346,24 @@ async function handleCreatePaymentIntent(request: Request, env: Env): Promise<Re
       currency: 'gbp', // Changed from 'usd' to 'gbp'
     });
 
-    return new Response(JSON.stringify({ clientSecret: paymentIntent.client_secret }), {
-      headers: { 
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
-    });
+    return new Response(JSON.stringify({ clientSecret: paymentIntent.client_secret }), { headers });
   } catch (error) {
     console.error("Error creating payment intent:", error);
     return new Response(JSON.stringify({ error: 'Failed to create payment intent' }), {
       status: 500,
-      headers: { 
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
+      headers,
     });
   }
 }
   
 async function handleSubmitQuote(request: Request, env: Env): Promise<Response> {
+  const headers = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': 'https://arknetcouriers.co.uk',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Max-Age': '86400',
+  };
+
   try {
     const data = await request.json() as QuoteData & { paymentIntentId: string };
     
@@ -408,14 +399,13 @@ async function handleSubmitQuote(request: Request, env: Env): Promise<Response> 
     } else {
     throw new Error("Failed to insert the order");
     }
+    
+    return new Response(JSON.stringify({ success: true, orderId: result.meta.last_row_id }), { headers });
   } catch (error) {
     console.error("Error submitting quote:", error);
     return new Response(JSON.stringify({ success: false, error: error instanceof Error ? error.message : String(error) }), {
-    status: 500,
-    headers: { 
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
-    },
+      status: 500,
+      headers,
     });
   }
 }
