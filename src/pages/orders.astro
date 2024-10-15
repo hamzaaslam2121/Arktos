@@ -405,7 +405,7 @@ let responseText: string | null = null;
                                 ${order.completed ? 'Completed' : 'Pending'}
                             </span>
                         </td>
-                        <td class="datetime" data-datetime="${order.datetime}">
+                        <td class="datetime" data-datetime="${order.datetime || 'None'}">
                             ${order.datetime ? new Date(order.datetime).toLocaleString('en-GB', {
                                 day: '2-digit',
                                 month: '2-digit',
@@ -489,10 +489,13 @@ let responseText: string | null = null;
         }
     // Helper function to parse date strings
     function parseDate(dateString: string | null): Date | null {
-        if (!dateString) return null;
+        if (!dateString || dateString === 'None') return null;
 
-        // Parse the ISO date string directly
-        return new Date(dateString);
+        // Parse the ISO date string
+        const date = new Date(dateString);
+        
+        // Check if the date is valid
+        return isNaN(date.getTime()) ? null : date;
     }
     // Helper function to parse price strings
     function parsePrice(priceString: string | null): number {
@@ -512,13 +515,13 @@ let responseText: string | null = null;
         
         switch (sortKey) {
             case 'datetime':
-            const aDate = parseDate(aValue);
-            const bDate = parseDate(bValue);
-            if (!aDate && !bDate) return 0;
-            if (!aDate) return isAscending ? -1 : 1; // Treat null dates as oldest
-            if (!bDate) return isAscending ? 1 : -1; // Treat null dates as oldest
-            comparison = aDate.getTime() - bDate.getTime();
-            break;
+                const aDate = parseDate(aValue);
+                const bDate = parseDate(bValue);
+                if (!aDate && !bDate) return 0;
+                if (!aDate) return isAscending ? 1 : -1; // Treat null dates as oldest
+                if (!bDate) return isAscending ? -1 : 1; // Treat null dates as oldest
+                comparison = aDate.getTime() - bDate.getTime();
+                break;
             case 'price':
                 comparison = parsePrice(aValue) - parsePrice(bValue);
                 break;
