@@ -1,0 +1,21 @@
+<div id="user-id-container" data-user-id="">  Check console log for user id </div>
+  
+  <script>
+    import { Clerk } from '@clerk/clerk-js';
+  
+    const clerk = new Clerk(import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY);
+    await clerk.load();
+  
+    if (clerk.user) {
+      const userId = clerk.user.id;
+      const userIdContainer = document.getElementById('user-id-container');
+      if (userIdContainer) {
+        userIdContainer.dataset.userId = userId;
+        console.log("Current user ID:", userId);
+      } else {
+        console.log("User ID container not found");
+      }
+    } else {
+      console.log("No user is signed in.");
+    }
+  </script>
