@@ -263,6 +263,8 @@ async function handleApiRequest(pathname: string, request: Request, env: Env): P
   // Default return for unmatched routes
   return new Response('Not Found', { status: 404, headers });
 }
+
+
 async function handleCreateCheckoutSession(request: Request, env: Env, headers: HeadersInit): Promise<Response> {
   if (request.method !== 'POST') {
     return new Response('Method Not Allowed', { status: 405, headers });
@@ -319,16 +321,27 @@ async function handleCreateCheckoutSession(request: Request, env: Env, headers: 
       },
     });
 
-    return new Response(JSON.stringify({ sessionId: session.id, url: session.url }), { headers });
+    return new Response(JSON.stringify({ sessionId: session.id, url: session.url }), {
+      headers: {
+        ...headers,
+        'Access-Control-Allow-Origin': 'https://arknetcouriers.co.uk',  // Add this
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',  // Allow the necessary methods
+        'Access-Control-Allow-Headers': 'Content-Type',  // Add the required headers
+      }
+    });
   } catch (error) {
     console.error("Error creating checkout session:", error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(JSON.stringify({ error: 'Failed to create checkout session', details: errorMessage }), {
       status: 500,
-      headers,
+      headers: {
+        ...headers,
+        'Access-Control-Allow-Origin': 'https://arknetcouriers.co.uk',  // Add this to error response as well
+      },
     });
   }
 }
+
 
 // Update the payment intent handler as well
 async function handleCreatePaymentIntent(request: Request, env: Env): Promise<Response> {
