@@ -158,7 +158,7 @@ console.log("Current user ID:", userId);
   
   document.addEventListener('DOMContentLoaded', async () => {
     // Initialize Clerk
-    const clerk = new Clerk(import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY);
+    const clerk = new Clerk('pk_test_ZHJpdmluZy1tYWNhdy00NC5jbGVyay5hY2NvdW50cy5kZXYk');
     await clerk.load();
 
     let userId = 'anonymous';

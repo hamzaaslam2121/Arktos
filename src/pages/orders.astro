@@ -336,7 +336,7 @@ let responseText: string | null = null;
             datetime: string;
         }
     
-        const clerk = new Clerk(import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY);
+        const clerk = new Clerk("pk_test_ZHJpdmluZy1tYWNhdy00NC5jbGVyay5hY2NvdW50cy5kZXYk");
         await clerk.load();
     
         async function fetchOrders(userId: string): Promise<Order[]> {
