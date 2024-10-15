@@ -324,7 +324,9 @@ let responseText: string | null = null;
     </main>
     <script>
         import { Clerk } from '@clerk/clerk-js';
-    
+        const apiBaseUrl = import.meta.env.MODE === 'production' 
+        ? 'https://worker-backend.hamzaaslam2121.workers.dev'
+        : '';
         interface Order {
             user: string;
             order: number;
@@ -341,7 +343,7 @@ let responseText: string | null = null;
     
         async function fetchOrders(userId: string): Promise<Order[]> {
         try {
-            const apiUrl = new URL('/api/orders', window.location.origin);
+            const apiUrl = new URL(`${apiBaseUrl}/api/orders`, window.location.origin);
             console.log("Fetching from:", apiUrl.toString());
             
             const response = await fetch(apiUrl.toString());
