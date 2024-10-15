@@ -33,7 +33,8 @@
   "dependencies": {
     "@astrojs/check": "^0.7.0",
     "@astrojs/node": "^8.3.2",
-    "@clerk/astro": "^1.3.13",
+    "@clerk/astro": "^1.3.14",
+    "@clerk/clerk-js": "^5.26.5",
     "@clerk/clerk-sdk-node": "^5.0.48",
     "@fontsource-variable/inter": "^5.0.17",
     "micromodal": "^0.4.10",
