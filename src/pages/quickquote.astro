@@ -318,15 +318,15 @@ console.log("Current user ID:", userId);
         quoteButton.classList.add('opacity-50', 'cursor-not-allowed');
       }
     }
-    // function pingServer() {
-    //   fetch(`${apiBaseUrl}/api/ping`)
-    //     .then(response => response.json())
-    //     .catch(error => console.error('Ping failed:', error));
-    // }
-    // // Ping every 5 minutes
-    // setInterval(pingServer, 60 * 1000);
-    // // Initial ping when the page loads
-    // pingServer();
+    function pingServer() {
+      fetch(`${apiBaseUrl}/api/ping`)
+        .then(response => response.json())
+        .catch(error => console.error('Ping failed:', error));
+    }
+    // Ping every 5 minutes
+    setInterval(pingServer, 60 * 1000);
+    // Initial ping when the page loads
+    pingServer();
 
     let debounceTimer: ReturnType<typeof setTimeout>;
     function debounce(func: Function, delay: number) {
