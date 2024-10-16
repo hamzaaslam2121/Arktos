@@ -128,17 +128,17 @@ async function handleApiRequest(pathname: string, request: Request, env: Env): P
 
 
   // Your existing /api/hello route
-  if (pathname === '/api/hello') {
-    const responseData = JSON.stringify({ message: 'Hello from Cloudflare Worker!' });
-    return new Response(responseData, {
-      headers: { 
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*', // Fixed typo here
-        'Access-Control-Allow-Methods': 'GET, OPTIONS',
-        'Access-Control-Max-Age': '86400',
-      },
-    });
-  }
+  // if (pathname === '/api/hello') {
+  //   const responseData = JSON.stringify({ message: 'Hello from Cloudflare Worker!' });
+  //   return new Response(responseData, {
+  //     headers: { 
+  //       'Content-Type': 'application/json',
+  //       'Access-Control-Allow-Origin': '*', // Fixed typo here
+  //       'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  //       'Access-Control-Max-Age': '86400',
+  //     },
+  //   });
+  // }
   // Your existing /api/hello route
   if (pathname === '/api/hello2') {
     const responseData = JSON.stringify({ message: 'Hello2 from Cloudflare Worker!' });
