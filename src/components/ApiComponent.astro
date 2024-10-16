@@ -1,30 +1,51 @@
 ---
 const workerUrl = import.meta.env.DEV 
   ? 'http://localhost:8787' 
-  : 'https://worker-backend.hamzaaslam2121.workers.dev'; // Replace with your actual Worker URL
+  : 'https://worker-backend.hamzaaslam2121.workers.dev';
 
-let data = null;
-let error = null;
+let helloData = null;
+let helloError = null;
 
 try {
   const response = await fetch(`${workerUrl}/api/hello`);
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);
   }
-  data = await response.json();
+  helloData = await response.json();
 } catch (e) {
-  console.error('Error fetching data:', e);
-  error = (e as Error).message; 
+  console.error('Error fetching hello data:', e);
+  helloError = (e instanceof Error) ? e.message : String(e);
 }
 ---
 
 <div>
   <h1>API Data</h1>
-  {data ? (
-    <pre>{JSON.stringify(data, null, 2)}</pre>
-  ) : error ? (
-    <p>Error: {error}</p>
+  {helloData ? (
+    <pre>{JSON.stringify(helloData, null, 2)}</pre>
+  ) : helloError ? (
+    <p>Error: {helloError}</p>
   ) : (
     <p>Loading...</p>
   )}
+
+  <h2>Ping Status</h2>
+  <p id="pingStatus">Waiting for first ping...</p>
 </div>
+
+<script define:vars={{workerUrl}}>
+  function pingServer() {
+    fetch(`${workerUrl}/api/ping`)
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById('pingStatus').textContent = `Last ping: ${new Date().toLocaleTimeString()} - Status: ${data.status}`;
+      })
+      .catch(error => {
+        console.error('Ping failed:', error);
+        document.getElementById('pingStatus').textContent = `Ping failed at ${new Date().toLocaleTimeString()}: ${error.message}`;
+      });
+  }
+
+  // Ping immediately and then every 60 seconds
+  pingServer();
+  setInterval(pingServer, 60 * 1000);
+</script>

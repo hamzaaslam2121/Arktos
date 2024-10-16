@@ -254,7 +254,7 @@ async function handleApiRequest(pathname: string, request: Request, env: Env): P
     return new Response(JSON.stringify({ status: 'ok' }), {
       headers: { 
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': 'https://arknetcouriers.co.uk',
+        'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
         'Access-Control-Max-Age': '86400',
       },
