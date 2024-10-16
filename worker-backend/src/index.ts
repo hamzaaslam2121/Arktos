@@ -79,53 +79,53 @@ async function handleApiRequest(pathname: string, request: Request, env: Env): P
       'Content-Type': 'application/json',
     };
   
-	if (pathname === '/api/submit-quote' && request.method === 'POST') {
-	  try {
-      const { results } = await env.MY_DB.prepare("PRAGMA table_info(orders)").all();
-      console.log('Table schema:', JSON.stringify(results));
+	// if (pathname === '/api/submit-quote' && request.method === 'POST') {
+	//   try {
+  //     const { results } = await env.MY_DB.prepare("PRAGMA table_info(orders)").all();
+  //     console.log('Table schema:', JSON.stringify(results));
     
-      const data = await request.json() as QuoteData;
+  //     const data = await request.json() as QuoteData;
       
-      console.log('Received data:', JSON.stringify(data));			
+  //     console.log('Received data:', JSON.stringify(data));			
     
-      const result = await env.MY_DB.prepare(
-        `INSERT INTO orders (user, stripe_price_id, pickup, destination, price, completed, serviceLevel, shippingType, weight) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      )
-      .bind(
-        data.user,
-        null, // stripe_price_id
-        data.pickup,
-        data.destination,
-        data.price,
-        data.completed,
-        data.serviceLevel,
-        data.shippingType,
-        data.weight
-      )
-      .run();
+  //     const result = await env.MY_DB.prepare(
+  //       `INSERT INTO orders (user, stripe_price_id, pickup, destination, price, completed, serviceLevel, shippingType, weight) 
+  //       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  //     )
+  //     .bind(
+  //       data.user,
+  //       null, // stripe_price_id
+  //       data.pickup,
+  //       data.destination,
+  //       data.price,
+  //       data.completed,
+  //       data.serviceLevel,
+  //       data.shippingType,
+  //       data.weight
+  //     )
+  //     .run();
     
-      console.log('Database operation result:', JSON.stringify(result));
+  //     console.log('Database operation result:', JSON.stringify(result));
     
-      if (result && result.meta && result.meta.changes === 1) {
-        return new Response(JSON.stringify({ success: true, orderId: result.meta.last_row_id }), {
-        headers: { 
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
-        });
-      } else {
-        throw new Error("Failed to insert the order");
-      }
-      return new Response(JSON.stringify({ success: true, orderId: result.meta.last_row_id }), { headers });
-    } catch (error) {
-      console.error("Error submitting quote:", error);
-      return new Response(JSON.stringify({ success: false, error: error instanceof Error ? error.message : String(error) }), {
-        status: 500,
-        headers,
-      });
-    }
-  }
+  //     if (result && result.meta && result.meta.changes === 1) {
+  //       return new Response(JSON.stringify({ success: true, orderId: result.meta.last_row_id }), {
+  //       headers: { 
+  //         'Content-Type': 'application/json',
+  //         'Access-Control-Allow-Origin': '*',
+  //       },
+  //       });
+  //     } else {
+  //       throw new Error("Failed to insert the order");
+  //     }
+  //     return new Response(JSON.stringify({ success: true, orderId: result.meta.last_row_id }), { headers });
+  //   } catch (error) {
+  //     console.error("Error submitting quote:", error);
+  //     return new Response(JSON.stringify({ success: false, error: error instanceof Error ? error.message : String(error) }), {
+  //       status: 500,
+  //       headers,
+  //     });
+  //   }
+  // }
 
 
   // Your existing /api/hello route
@@ -370,7 +370,6 @@ async function handleCreateCheckoutSession(request: Request, env: Env, headers: 
   }
 }
 
-
 async function handleWebhook(request: Request, env: Env): Promise<Response> {
   const stripe = new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' as Stripe.LatestApiVersion });
   const signature = request.headers.get('stripe-signature');
@@ -393,27 +392,8 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
       const metadata = session.metadata;
 
       if (metadata) {
-        const result = await env.MY_DB.prepare(
-          `INSERT INTO orders (user, pickup, destination, price, completed, serviceLevel, shippingType, weight, datetime, stripe_payment_intent_id)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-        )
-        .bind(
-          metadata.user,
-          metadata.pickup,
-          metadata.destination,
-          parseFloat(metadata.price),
-          parseInt(metadata.completed),
-          metadata.serviceLevel,
-          metadata.shippingType,
-          parseFloat(metadata.weight),
-          metadata.datetime,
-          session.payment_intent as string
-        )
-        .run();
-
-        if (!result || !result.meta || result.meta.changes !== 1) {
-          throw new Error("Failed to insert the order");
-        }
+        // Instead of trying to insert, just log the data
+        console.log("Got to here - Order data:", metadata); 
       }
     }
 
@@ -423,8 +403,6 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
     return new Response(`Webhook Error: ${error instanceof Error ? error.message : 'Unknown error'}`, { status: 400 });
   }
 }
-
-
 
 // Update the payment intent handler as well
 async function handleCreatePaymentIntent(request: Request, env: Env): Promise<Response> {
