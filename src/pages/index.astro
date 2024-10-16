@@ -9,6 +9,7 @@ import Showcase from "~/components/showcase.astro";
 import Splash from "~/components/splash.astro";
 import "~/styles/index.css";
 import ApiComponent from '../components/ApiComponent.astro';
+import ApiComponentPing from '../components/ApiComponentPing.astro';
 
 
 const { generator, site } = Astro;
@@ -87,5 +88,6 @@ const description =
   <body>
     <h1>Welcome to My Astro App</h1>
     <ApiComponent />
+    <ApiComponentPing />
   </body>
 </html>

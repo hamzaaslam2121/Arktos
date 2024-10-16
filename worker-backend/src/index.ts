@@ -139,6 +139,21 @@ async function handleApiRequest(pathname: string, request: Request, env: Env): P
       },
     });
   }
+
+
+  // Your existing /api/hello route
+  if (pathname === '/api/ping') {
+    const responseData = JSON.stringify({ message: 'Ping from Cloudflare Worker!' });
+    return new Response(responseData, {
+      headers: { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*', // Fixed typo here
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Max-Age': '86400',
+      },
+    });
+  }
+
   if (pathname === '/api/orders') {
     try {
       const { results } = await env.MY_DB.prepare("SELECT * FROM orders").all();
@@ -250,16 +265,18 @@ async function handleApiRequest(pathname: string, request: Request, env: Env): P
       });
     }
   }
-  if (pathname === '/api/ping') {
-    return new Response(JSON.stringify({ status: 'ok' }), {
-      headers: { 
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Max-Age': '86400',
-      },
-      });
-  }
+  // if (pathname === '/api/ping') {
+  //   return new Response(JSON.stringify({ status: 'ok' }), {
+  //     headers: { 
+  //       'Content-Type': 'application/json',
+  //       'Access-Control-Allow-Origin': '*',
+  //       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  //       'Access-Control-Max-Age': '86400',
+  //     },
+  //     });
+  // }
+
+
   // Add new Stripe-related routes
   if (pathname === '/api/create-payment-intent' && request.method === 'POST') {
     return handleCreatePaymentIntent(request, env);

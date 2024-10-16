@@ -7,7 +7,7 @@ let data = null;
 let error = null;
 
 try {
-  const response = await fetch(`${workerUrl}/api/hello`);
+  const response = await fetch(`${workerUrl}/api/ping`);
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);
   }
