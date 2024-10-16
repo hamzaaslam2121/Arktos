@@ -295,9 +295,9 @@ async function handleApiRequest(pathname: string, request: Request, env: Env): P
   }
 
   // Update the submit-quote handler to include payment processing
-  if (pathname === '/api/submit-quote' && request.method === 'POST') {
-    return handleSubmitQuote(request, env);
-  }
+  // if (pathname === '/api/submit-quote' && request.method === 'POST') {
+  //   return handleSubmitQuote(request, env);
+  // }
   if (pathname === '/api/create-checkout-session' && request.method === 'POST') {
     return handleCreateCheckoutSession(request, env, headers);
   }

@@ -7631,9 +7631,6 @@ async function handleApiRequest(pathname, request, env) {
   if (pathname === "/api/create-payment-intent" && request.method === "POST") {
     return handleCreatePaymentIntent(request, env);
   }
-  if (pathname === "/api/submit-quote" && request.method === "POST") {
-    return handleSubmitQuote(request, env);
-  }
   if (pathname === "/api/create-checkout-session" && request.method === "POST") {
     return handleCreateCheckoutSession(request, env, headers);
   }
@@ -7765,52 +7762,6 @@ async function handleCreatePaymentIntent(request, env) {
   } catch (error) {
     console.error("Error creating payment intent:", error);
     return new Response(JSON.stringify({ error: "Failed to create payment intent" }), {
-      status: 500,
-      headers
-    });
-  }
-}
-async function handleSubmitQuote(request, env) {
-  const headers = {
-    "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "https://arknetcouriers.co.uk",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Max-Age": "86400"
-  };
-  try {
-    const data = await request.json();
-    console.log("Received data:", JSON.stringify(data));
-    const result = await env.MY_DB.prepare(
-      `INSERT INTO orders (user, stripe_payment_intent_id, pickup, destination, price, completed, serviceLevel, shippingType, weight, datetime) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    ).bind(
-      data.user,
-      data.paymentIntentId,
-      data.pickup,
-      data.destination,
-      data.price,
-      data.completed,
-      data.serviceLevel,
-      data.shippingType,
-      data.weight,
-      data.datetime
-      // Add this line
-    ).run();
-    console.log("Database operation result:", JSON.stringify(result));
-    if (result && result.meta && result.meta.changes === 1) {
-      return new Response(JSON.stringify({ success: true, orderId: result.meta.last_row_id }), {
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*"
-        }
-      });
-    } else {
-      throw new Error("Failed to insert the order");
-    }
-    return new Response(JSON.stringify({ success: true, orderId: result.meta.last_row_id }), { headers });
-  } catch (error) {
-    console.error("Error submitting quote:", error);
-    return new Response(JSON.stringify({ success: false, error: error instanceof Error ? error.message : String(error) }), {
       status: 500,
       headers
     });
