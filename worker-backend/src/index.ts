@@ -8,6 +8,7 @@ interface Env {
   MY_DB: D1Database;
   GOOGLE_MAPS_API_KEY: string; 
   STRIPE_SECRET_KEY: string;
+  STRIPE_WEBHOOK_SECRET: string;
 }
 
 interface QuoteData {
@@ -300,6 +301,9 @@ async function handleApiRequest(pathname: string, request: Request, env: Env): P
   if (pathname === '/api/create-checkout-session' && request.method === 'POST') {
     return handleCreateCheckoutSession(request, env, headers);
   }
+  if (pathname === '/api/stripe-webhook' && request.method === 'POST') {
+    return handleWebhook(request, env);
+  }
   // Default return for unmatched routes
   return new Response('Not Found', { status: 404, headers });
 }
@@ -313,30 +317,6 @@ async function handleCreateCheckoutSession(request: Request, env: Env, headers: 
   try {
     const stripe = new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' as Stripe.LatestApiVersion });
     const data = await request.json() as QuoteData;
-
-    // Create a new order in your database
-    const orderResult = await env.MY_DB.prepare(
-      `INSERT INTO orders (user, pickup, destination, price, completed, serviceLevel, shippingType, weight, datetime)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    )
-    .bind(
-      data.user,
-      data.pickup,
-      data.destination,
-      data.price,
-      data.completed,
-      data.serviceLevel,
-      data.shippingType,
-      data.weight,
-      data.datetime
-    )
-    .run();
-
-    if (!orderResult || !orderResult.meta || orderResult.meta.changes !== 1) {
-      throw new Error("Failed to insert the order");
-    }
-
-    const orderId = orderResult.meta.last_row_id;
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -357,16 +337,24 @@ async function handleCreateCheckoutSession(request: Request, env: Env, headers: 
       success_url: `${request.headers.get('Origin')}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${request.headers.get('Origin')}/quickquote`,
       metadata: {
-        orderId: orderId.toString(),
+        user: data.user,
+        pickup: data.pickup,
+        destination: data.destination,
+        price: data.price.toString(),
+        completed: data.completed.toString(),
+        serviceLevel: data.serviceLevel,
+        shippingType: data.shippingType,
+        weight: data.weight.toString(),
+        datetime: data.datetime,
       },
     });
 
     return new Response(JSON.stringify({ sessionId: session.id, url: session.url }), {
       headers: {
         ...headers,
-        'Access-Control-Allow-Origin': '*',  // Add this
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',  // Allow the necessary methods
-        'Access-Control-Allow-Headers': 'Content-Type',  // Add the required headers
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
       }
     });
   } catch (error) {
@@ -376,11 +364,66 @@ async function handleCreateCheckoutSession(request: Request, env: Env, headers: 
       status: 500,
       headers: {
         ...headers,
-        'Access-Control-Allow-Origin': '*',  // Add this to error response as well
+        'Access-Control-Allow-Origin': '*',
       },
     });
   }
 }
+
+
+async function handleWebhook(request: Request, env: Env): Promise<Response> {
+  const stripe = new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' as Stripe.LatestApiVersion });
+  const signature = request.headers.get('stripe-signature');
+  const body = await request.text();
+
+  if (!signature) {
+    return new Response('No Stripe signature found', { status: 400 });
+  }
+
+  if (!env.STRIPE_WEBHOOK_SECRET) {
+    console.error('STRIPE_WEBHOOK_SECRET is not set');
+    return new Response('Webhook secret is not configured', { status: 500 });
+  }
+
+  try {
+    const event = stripe.webhooks.constructEvent(body, signature, env.STRIPE_WEBHOOK_SECRET);
+
+    if (event.type === 'checkout.session.completed') {
+      const session = event.data.object as Stripe.Checkout.Session;
+      const metadata = session.metadata;
+
+      if (metadata) {
+        const result = await env.MY_DB.prepare(
+          `INSERT INTO orders (user, pickup, destination, price, completed, serviceLevel, shippingType, weight, datetime, stripe_payment_intent_id)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        )
+        .bind(
+          metadata.user,
+          metadata.pickup,
+          metadata.destination,
+          parseFloat(metadata.price),
+          parseInt(metadata.completed),
+          metadata.serviceLevel,
+          metadata.shippingType,
+          parseFloat(metadata.weight),
+          metadata.datetime,
+          session.payment_intent as string
+        )
+        .run();
+
+        if (!result || !result.meta || result.meta.changes !== 1) {
+          throw new Error("Failed to insert the order");
+        }
+      }
+    }
+
+    return new Response(JSON.stringify({ received: true }), { status: 200 });
+  } catch (error) {
+    console.error('Webhook error:', error);
+    return new Response(`Webhook Error: ${error instanceof Error ? error.message : 'Unknown error'}`, { status: 400 });
+  }
+}
+
 
 
 // Update the payment intent handler as well
