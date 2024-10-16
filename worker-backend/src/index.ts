@@ -457,59 +457,59 @@ async function handleCreatePaymentIntent(request: Request, env: Env): Promise<Re
   }
 }
   
-async function handleSubmitQuote(request: Request, env: Env): Promise<Response> {
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': 'https://arknetcouriers.co.uk',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Max-Age': '86400',
-  };
+// async function handleSubmitQuote(request: Request, env: Env): Promise<Response> {
+//   const headers = {
+//     'Content-Type': 'application/json',
+//     'Access-Control-Allow-Origin': 'https://arknetcouriers.co.uk',
+//     'Access-Control-Allow-Methods': 'POST, OPTIONS',
+//     'Access-Control-Max-Age': '86400',
+//   };
 
-  try {
-    const data = await request.json() as QuoteData & { paymentIntentId: string };
+//   try {
+//     const data = await request.json() as QuoteData & { paymentIntentId: string };
     
-    console.log('Received data:', JSON.stringify(data));
+//     console.log('Received data:', JSON.stringify(data));
   
-    const result = await env.MY_DB.prepare(
-    `INSERT INTO orders (user, stripe_payment_intent_id, pickup, destination, price, completed, serviceLevel, shippingType, weight, datetime) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    )
-    .bind(
-    data.user,
-    data.paymentIntentId,
-    data.pickup,
-    data.destination,
-    data.price,
-    data.completed,
-    data.serviceLevel,
-    data.shippingType,
-    data.weight,
-    data.datetime // Add this line
-    )
-    .run();
+//     const result = await env.MY_DB.prepare(
+//     `INSERT INTO orders (user, stripe_payment_intent_id, pickup, destination, price, completed, serviceLevel, shippingType, weight, datetime) 
+//     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+//     )
+//     .bind(
+//     data.user,
+//     data.paymentIntentId,
+//     data.pickup,
+//     data.destination,
+//     data.price,
+//     data.completed,
+//     data.serviceLevel,
+//     data.shippingType,
+//     data.weight,
+//     data.datetime // Add this line
+//     )
+//     .run();
   
-    console.log('Database operation result:', JSON.stringify(result));
+//     console.log('Database operation result:', JSON.stringify(result));
   
-    if (result && result.meta && result.meta.changes === 1) {
-    return new Response(JSON.stringify({ success: true, orderId: result.meta.last_row_id }), {
-      headers: { 
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
-      },
-    });
-    } else {
-    throw new Error("Failed to insert the order");
-    }
+//     if (result && result.meta && result.meta.changes === 1) {
+//     return new Response(JSON.stringify({ success: true, orderId: result.meta.last_row_id }), {
+//       headers: { 
+//       'Content-Type': 'application/json',
+//       'Access-Control-Allow-Origin': '*',
+//       },
+//     });
+//     } else {
+//     throw new Error("Failed to insert the order");
+//     }
     
-    return new Response(JSON.stringify({ success: true, orderId: result.meta.last_row_id }), { headers });
-  } catch (error) {
-    console.error("Error submitting quote:", error);
-    return new Response(JSON.stringify({ success: false, error: error instanceof Error ? error.message : String(error) }), {
-      status: 500,
-      headers,
-    });
-  }
-}
+//     return new Response(JSON.stringify({ success: true, orderId: result.meta.last_row_id }), { headers });
+//   } catch (error) {
+//     console.error("Error submitting quote:", error);
+//     return new Response(JSON.stringify({ success: false, error: error instanceof Error ? error.message : String(error) }), {
+//       status: 500,
+//       headers,
+//     });
+//   }
+// }
 function isDistanceMatrixResponse(data: unknown): data is DistanceMatrixResponse {
 	if (typeof data !== 'object' || data === null) {
 	  return false;
