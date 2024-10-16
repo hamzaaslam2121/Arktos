@@ -62,11 +62,12 @@ export default {
 async function handleApiRequest(pathname: string, request: Request, env: Env): Promise<Response> {
   // Common headers for all API responses
   const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': 'https://arknetcouriers.co.uk',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
     'Access-Control-Max-Age': '86400',
   };
+
   // Handle OPTIONS requests for CORS preflight
   if (request.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -132,7 +133,7 @@ async function handleApiRequest(pathname: string, request: Request, env: Env): P
     return new Response(responseData, {
       headers: { 
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': 'https://arknetcouriers.co.uk', // Fixed typo here
+        'Access-Control-Allow-Origin': '*', // Fixed typo here
         'Access-Control-Allow-Methods': 'GET, OPTIONS',
         'Access-Control-Max-Age': '86400',
       },
@@ -250,7 +251,14 @@ async function handleApiRequest(pathname: string, request: Request, env: Env): P
     }
   }
   if (pathname === '/api/ping') {
-    return new Response(JSON.stringify({ status: 'ok' }), { headers });
+    return new Response(JSON.stringify({ status: 'ok' }), {
+      headers: { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Max-Age': '86400',
+      },
+      });
   }
   // Add new Stripe-related routes
   if (pathname === '/api/create-payment-intent' && request.method === 'POST') {
