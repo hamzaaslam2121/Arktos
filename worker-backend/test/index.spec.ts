@@ -10,7 +10,8 @@ const mockEnv = {
     exec: () => Promise.resolve({ results: [] })
   } as unknown as D1Database,
   GOOGLE_MAPS_API_KEY: 'test_key',
-  STRIPE_SECRET_KEY: 'test_key'
+  STRIPE_SECRET_KEY: 'test_key',
+  STRIPE_WEBHOOK_SECRET: 'test_webhook_secret'
 };
 
 describe('Worker test', () => {
