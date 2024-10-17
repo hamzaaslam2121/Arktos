@@ -55,6 +55,12 @@ export default {
 };
 
 async function handleApiRequest(pathname: string, request: Request, env: Env): Promise<Response> {
+
+  // Handle the Stripe webhook endpoint first
+  if (pathname === '/api/stripe-webhook') {
+    return handleWebhook(request, env);
+  }
+
   const corsHeaders = {
     'Access-Control-Allow-Origin': 'https://arknetcouriers.co.uk',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
@@ -191,10 +197,6 @@ async function handleApiRequest(pathname: string, request: Request, env: Env): P
     return handleCreateCheckoutSession(request, env, headers);
   }
 
-  if (pathname === '/api/stripe-webhook' && request.method === 'POST') {
-    return handleWebhook(request, env);
-  }
-
   return new Response('Not Found', { status: 404, headers });
 }
 
@@ -281,6 +283,10 @@ async function handleCreateCheckoutSession(request: Request, env: Env, headers: 
 }
 
 async function handleWebhook(request: Request, env: Env): Promise<Response> {
+  if (request.method !== 'POST') {
+    return new Response('Method Not Allowed', { status: 405 });
+  }
+
   const stripe = new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' as Stripe.LatestApiVersion });
   const signature = request.headers.get('stripe-signature');
   const body = await request.text();
