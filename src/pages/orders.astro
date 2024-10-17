@@ -280,6 +280,7 @@ let responseText: string | null = null;
             border-radius: 0.25rem;
             transition: background-color 0.3s;
             font-size: 1rem;
+            transform: scale(1.05); 
         }
 
         .pagination button:hover:not(:disabled) {
@@ -410,25 +411,29 @@ let responseText: string | null = null;
         }
     }
 
+
     let currentPage = 1;
     const ordersPerPage = 15;
+    let allOrders: Order[] = [];
+    let currentSortKey: string | null = null;
+    let isAscending = false;
 
-    function renderOrders(orders: Order[] | null) {
+    function renderOrders() {
         const container = document.querySelector('#orders-container');
         if (!container) {
             console.error("Orders container not found");
             return;
         }
 
-        if (!orders || orders.length === 0) {
+        if (!allOrders || allOrders.length === 0) {
             container.innerHTML = '<div class="no-orders"><p>You have no orders yet.</p></div>';
             return;
         }
 
-        const totalPages = Math.ceil(orders.length / ordersPerPage);
+        const totalPages = Math.ceil(allOrders.length / ordersPerPage);
         const startIndex = (currentPage - 1) * ordersPerPage;
         const endIndex = startIndex + ordersPerPage;
-        const currentOrders = orders.slice(startIndex, endIndex);
+        const currentOrders = allOrders.slice(startIndex, endIndex);
 
         let tableHTML = `
             <div class="orders-container">
@@ -473,35 +478,82 @@ let responseText: string | null = null;
                     <button id="nextPage" ${currentPage === totalPages ? 'disabled' : ''}>Next</button>
                 </div>
             </div>
-            `;
+        `;
 
-            container.innerHTML = tableHTML;
-            addTableClickEvent();
-            addPaginationEvents(orders);
+        container.innerHTML = tableHTML;
+        addTableClickEvent();
+        addPaginationEvents();
+    }
+
+    function addPaginationEvents() {
+        const prevButton = document.getElementById('prevPage');
+        const nextButton = document.getElementById('nextPage');
+        const currentPageInput = document.getElementById('currentPageInput') as HTMLInputElement;
+        const totalPages = Math.ceil(allOrders.length / ordersPerPage);
+
+        function updatePage(newPage: number) {
+            if (newPage >= 1 && newPage <= totalPages) {
+                currentPage = newPage;
+                renderOrders();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
         }
 
-        function addPaginationEvents(orders: Order[]) {
-            const prevButton = document.getElementById('prevPage');
-            const nextButton = document.getElementById('nextPage');
-            const currentPageInput = document.getElementById('currentPageInput') as HTMLInputElement;
-            const totalPages = Math.ceil(orders.length / ordersPerPage);
+        prevButton?.addEventListener('click', () => updatePage(currentPage - 1));
+        nextButton?.addEventListener('click', () => updatePage(currentPage + 1));
 
-            function updatePage(newPage: number) {
-                if (newPage >= 1 && newPage <= totalPages) {
-                    currentPage = newPage;
-                    renderOrders(orders);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                }
+        currentPageInput?.addEventListener('change', (e) => {
+            const newPage = parseInt((e.target as HTMLInputElement).value);
+            updatePage(newPage);
+        });
+    }
+
+    function sortOrders(sortKey: string) {
+        isAscending = currentSortKey === sortKey ? !isAscending : true;
+        currentSortKey = sortKey;
+
+        allOrders.sort((a, b) => {
+            let comparison = 0;
+            switch (sortKey) {
+                case 'datetime':
+                    const aDate = parseDate(a.datetime);
+                    const bDate = parseDate(b.datetime);
+                    comparison = aDate.getTime() - bDate.getTime();
+                    break;
+                case 'price':
+                    comparison = a.price - b.price;
+                    break;
+                case 'status':
+                    comparison = (a.completed ? 'Completed' : 'Pending').localeCompare(b.completed ? 'Completed' : 'Pending');
+                    break;
+                case 'address':
+                    comparison = a.destination.localeCompare(b.destination);
+                    break;
+                default:
+                    comparison = 0;
             }
+            return isAscending ? comparison : -comparison;
+        });
 
-            prevButton?.addEventListener('click', () => updatePage(currentPage - 1));
-            nextButton?.addEventListener('click', () => updatePage(currentPage + 1));
+        //currentPage = 1;  // Reset to first page after sorting
+        renderOrders();
+        updateSortIcons(sortKey);
 
-            currentPageInput?.addEventListener('change', (e) => {
-                const newPage = parseInt((e.target as HTMLInputElement).value);
-                updatePage(newPage);
+    }
+        
+    function updateSortIcons(sortKey: string) {
+        const table = document.querySelector('.orders-table') as HTMLTableElement;
+        if (table) {
+            table.querySelectorAll('th.sortable').forEach(th => {
+                const icon = th.querySelector('.sort-icon') as HTMLSpanElement;
+                if (th.getAttribute('data-sort') === sortKey) {
+                    icon.className = 'sort-icon ' + (isAscending ? 'asc' : 'desc');
+                } else {
+                    icon.className = 'sort-icon';
+                }
             });
         }
+    }
         function formatDate(dateString: string | null): string {
             if (!dateString) return 'No date';
             
@@ -509,15 +561,16 @@ let responseText: string | null = null;
             return dateString;
         }
 
+
         if (clerk.user) {
             const userId = clerk.user.id;
             console.log("Current user ID:", userId);
-            const orders = await fetchOrders(userId);
-            console.log("Orders fetched for rendering:", orders);
-            renderOrders(orders);
+            allOrders = await fetchOrders(userId);
+            console.log("Orders fetched for rendering:", allOrders);
+            renderOrders();
         } else {
             console.log("No user is signed in.");
-            renderOrders(null);
+            renderOrders();
         }
         console.log("Astro script is running");
         // Ensure the theme switcher initializes and is visible
@@ -624,13 +677,9 @@ let responseText: string | null = null;
         return isAscending ? comparison : -comparison;
     }
 
-
-    // Function to add click event to the table
     function addTableClickEvent() {
-        console.log("Adding click event to table");
         const table = document.querySelector('.orders-table') as HTMLTableElement;
         if (table) {
-            console.log("Table found");
             table.addEventListener('click', (event: MouseEvent) => {
                 const target = event.target as HTMLElement;
                 const header = target.closest('th.sortable') as HTMLTableCellElement;
@@ -639,37 +688,8 @@ let responseText: string | null = null;
                 const sortKey = header.getAttribute('data-sort');
                 if (!sortKey) return;
 
-                const sortIcon = header.querySelector('.sort-icon');
-                if (!sortIcon) return;
-
-                const isAscending = sortIcon.classList.contains('desc'); // Toggle the order
-                
-                // Update sort icon
-                sortIcon.classList.toggle('asc', isAscending);
-                sortIcon.classList.toggle('desc', !isAscending);
-                
-                // Remove sorting classes from other headers
-                table.querySelectorAll('th.sortable').forEach(th => {
-                    if (th !== header) {
-                        th.querySelector('.sort-icon')?.classList.remove('asc', 'desc');
-                    }
-                });
-                
-                // Sort the table
-                const tbody = table.querySelector('tbody');
-                if (!tbody) return;
-
-                const rows = Array.from(tbody.querySelectorAll('tr')) as HTMLTableRowElement[];
-                
-                rows.sort((a, b) => sortByColumn(a, b, sortKey, isAscending));
-                
-                // Clear and re-append sorted rows
-                tbody.innerHTML = '';
-                rows.forEach(row => tbody.appendChild(row));
+                sortOrders(sortKey);
             });
-            initialSortTable();
-        } else {
-            console.log("Table not found");
         }
     }
   addTableClickEvent();
