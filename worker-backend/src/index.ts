@@ -293,23 +293,39 @@ async function handleCreateCheckoutSession(request: Request, env: Env, headers: 
 }
 
 async function handleWebhook(request: Request, env: Env): Promise<Response> {
-  // Log the request method and URL for debugging
-  console.log(`Webhook request: ${request.method} ${request.url}`);
+  // Log detailed information for debugging
+  console.log(`Webhook request method: ${request.method}`);
+  console.log(`Webhook request URL: ${request.url}`);
+  console.log(`Webhook request headers:`, [...request.headers]);
 
   if (request.method !== 'POST') {
-    return new Response('Method Not Allowed', { status: 405 });
+    console.warn(`Unexpected HTTP method: ${request.method}`);
+    return new Response('Method Not Allowed', {
+      status: 405,
+      headers: { 'Allow': 'POST' },
+    });
   }
 
-  const stripe = new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' as Stripe.LatestApiVersion });
+  const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
+    apiVersion: '2024-09-30.acacia',
+  });
   const signature = request.headers.get('stripe-signature');
   const body = await request.text();
 
   if (!signature || !env.STRIPE_WEBHOOK_SECRET) {
+    console.error('Invalid webhook request: Missing signature or webhook secret');
     return new Response('Invalid webhook request', { status: 400 });
   }
 
   try {
-    const event = stripe.webhooks.constructEvent(body, signature, env.STRIPE_WEBHOOK_SECRET);
+    // Use constructEventAsync instead of constructEvent
+    const event = await stripe.webhooks.constructEventAsync(
+      body,
+      signature,
+      env.STRIPE_WEBHOOK_SECRET
+    );
+
+    console.log(`Webhook event type: ${event.type}`);
 
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object as Stripe.Checkout.Session;
@@ -319,49 +335,47 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
         throw new Error('No metadata found in session');
       }
 
-      // Begin transaction
-      await env.MY_DB.prepare('BEGIN TRANSACTION').run();
+      // Use batch() to execute statements as a transaction
+      const statements = [];
 
-      try {
-        // Insert into confirmed orders
-        const result = await env.MY_DB.prepare(
-          `INSERT INTO orders (
-            user, pickup, destination, price, completed, serviceLevel, 
-            shippingType, weight, datetime, stripe_payment_intent_id
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-        )
-        .bind(
-          metadata.user,
-          metadata.pickup,
-          metadata.destination,
-          parseFloat(metadata.price),
-          parseInt(metadata.completed),
-          metadata.serviceLevel,
-          metadata.shippingType,
-          parseFloat(metadata.weight),
-          metadata.datetime,
-          session.payment_intent as string
-        )
-        .run();
+      // Prepare the insert statement into orders
+      const insertStatement = env.MY_DB.prepare(
+        `INSERT INTO orders (
+          user, pickup, destination, price, completed, serviceLevel, 
+          shippingType, weight, datetime, stripe_payment_intent_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ).bind(
+        metadata.user,
+        metadata.pickup,
+        metadata.destination,
+        parseFloat(metadata.price),
+        parseInt(metadata.completed),
+        metadata.serviceLevel,
+        metadata.shippingType,
+        parseFloat(metadata.weight),
+        metadata.datetime,
+        session.payment_intent as string
+      );
 
-        if (!result.meta?.changes) {
-          throw new Error('Failed to insert confirmed order');
-        }
+      statements.push(insertStatement);
 
-        // Delete the pending order if it exists
-        if (metadata.pending_order_id) {
-          await env.MY_DB.prepare('DELETE FROM pending_orders WHERE id = ?')
-            .bind(metadata.pending_order_id)
-            .run();
-        }
-
-        // Commit transaction
-        await env.MY_DB.prepare('COMMIT').run();
-      } catch (error) {
-        // Rollback on error
-        await env.MY_DB.prepare('ROLLBACK').run();
-        throw error;
+      // Optionally prepare the delete statement to remove the pending order
+      if (metadata.pending_order_id) {
+        const deleteStatement = env.MY_DB.prepare('DELETE FROM pending_orders WHERE id = ?')
+          .bind(metadata.pending_order_id);
+        statements.push(deleteStatement);
       }
+
+      // Execute all statements as a single transaction
+      const results = await env.MY_DB.batch(statements);
+
+      // Check if the insert was successful
+      const insertResult = results[0];
+      if (!insertResult.meta?.changes) {
+        throw new Error('Failed to insert confirmed order');
+      }
+
+      console.log('Order successfully inserted and pending order deleted if applicable.');
     }
 
     return new Response(JSON.stringify({ received: true }), { status: 200 });
@@ -373,6 +387,8 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
     );
   }
 }
+
+
 
 async function handleCreatePaymentIntent(request: Request, env: Env): Promise<Response> {
   const headers = {
