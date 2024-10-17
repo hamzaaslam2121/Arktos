@@ -12,29 +12,32 @@ console.log("Current user ID:", userId);
 // ...
 
 ---
+<!-- Add viewport meta tag in your head section -->
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+</head>
+
 <section class="relative min-h-screen bg-black text-white flex items-center justify-center">
   <Starfield />
   
-  <div class="container mx-auto px-4 py-8 md:py-12 flex items-center justify-center">
-    <div class="w-full max-w-3xl mx-auto bg-white bg-opacity-10 backdrop-blur-md rounded-lg shadow-lg p-6">
-      <div class="mb-6 text-center">
-        <h2 class="text-3xl font-bold gradient-text">PARCEL DELIVERY QUICK QUOTE</h2>
-        <!-- <p class="text-sm text-gray-300 mt-1">
-          Simply enter your parcel details and destination to see the prices and services available.
-        </p> -->
+  <div class="container w-full mx-auto px-2 py-4 md:py-12 flex items-center justify-center">
+    <div class="w-full max-w-3xl mx-auto bg-white bg-opacity-10 backdrop-blur-md rounded-lg shadow-lg p-3 md:p-6">
+      <div class="mb-4 md:mb-6 text-center">
+        <h2 class="text-2xl md:text-3xl font-bold gradient-text">PARCEL DELIVERY QUICK QUOTE</h2>
       </div>
 
-      <form class="space-y-6" id="parcelForm">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <form class="space-y-4 md:space-y-6" id="parcelForm">
+        <!-- Enforce single column on small screens -->
+        <div class="flex flex-col md:grid md:grid-cols-2 gap-4 md:gap-6">
           <!-- Collection Address Section -->
-          <div class="space-y-4">
+          <div class="space-y-3 md:space-y-4 w-full">
             <div class="relative">
               <label class="block text-sm font-medium mb-1" for="pickupPostcode">Collection Postcode:</label>
               <input
                 type="text"
                 id="pickupPostcode"
                 placeholder="Enter collection postcode"
-                class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                class="w-full px-3 py-3 md:py-2 text-base md:text-sm bg-gray-800 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                 autocomplete="off"
                 required
               />
@@ -46,21 +49,21 @@ console.log("Current user ID:", userId);
                 type="text"
                 id="pickup"
                 placeholder="Enter collection address"
-                class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                class="w-full px-3 py-3 md:py-2 text-base md:text-sm bg-gray-800 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                 autocomplete="off"
               />
             </div>
           </div>
 
           <!-- Delivery Address Section -->
-          <div class="space-y-4">
+          <div class="space-y-3 md:space-y-4 w-full">
             <div class="relative">
               <label class="block text-sm font-medium mb-1" for="destinationPostcode">Delivery Postcode:</label>
               <input
                 type="text"
                 id="destinationPostcode"
                 placeholder="Enter delivery postcode"
-                class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                class="w-full px-3 py-3 md:py-2 text-base md:text-sm bg-gray-800 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                 autocomplete="off"
                 required
               />
@@ -72,15 +75,16 @@ console.log("Current user ID:", userId);
                 type="text"
                 id="destination"
                 placeholder="Enter delivery address"
-                class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                class="w-full px-3 py-3 md:py-2 text-base md:text-sm bg-gray-800 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                 autocomplete="off"
               />
             </div>
           </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div>
+        <!-- Single column layout for additional fields -->
+        <div class="flex flex-col md:grid md:grid-cols-3 gap-4 md:gap-6">
+          <div class="w-full">
             <label class="block text-sm font-medium mb-1" for="weight">Weight (kg):</label>
             <input
               type="number"
@@ -88,15 +92,15 @@ console.log("Current user ID:", userId);
               placeholder="Enter weight"
               step="0.1"
               min="0"
-              class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              class="w-full px-3 py-3 md:py-2 text-base md:text-sm bg-gray-800 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
               required
             />
           </div>
-          <div>
+          <div class="w-full">
             <label class="block text-sm font-medium mb-1" for="serviceLevel">Service Level:</label>
             <select 
               id="serviceLevel" 
-              class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              class="w-full px-3 py-3 md:py-2 text-base md:text-sm bg-gray-800 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
               required
             >
               <option value="standard">Standard</option>
@@ -104,11 +108,11 @@ console.log("Current user ID:", userId);
               <option value="nextDay">Next Day</option>
             </select>
           </div>
-          <div>
+          <div class="w-full">
             <label class="block text-sm font-medium mb-1" for="shippingType">Shipping Type:</label>
             <select 
               id="shippingType" 
-              class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              class="w-full px-3 py-3 md:py-2 text-base md:text-sm bg-gray-800 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
               required
             >
               <option value="parcel">Parcel</option>
@@ -121,34 +125,48 @@ console.log("Current user ID:", userId);
         <div id="distance-info" class="mt-4 p-3 bg-gray-800 bg-opacity-10 rounded-md hidden">
           <p class="text-sm font-medium">Estimated driving distance: <span id="distance-value"></span></p>
         </div>
+        
         <div id="price-info" class="mt-4 p-2 bg-gray-800 bg-opacity-0 rounded-md hidden">
-          <p class="text-lg font-bold">Price: &pound;<span id="price-value">N/A</span></p>
+          <p class="text-xl md:text-lg font-bold">Price: &pound;<span id="price-value">N/A</span></p>
         </div>
-        <div class="flex justify-end items-center pt-4">
+        
+        <div class="flex justify-center md:justify-end items-center pt-4">
           <button 
             type="submit" 
             id="quoteButton"
             disabled 
-            class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-500 text-white rounded-md 10 font-bold text-lg hover:opacity-90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            class="w-full md:w-auto px-6 py-4 md:py-3 bg-gradient-to-r from-purple-600 to-pink-500 text-white rounded-md font-bold text-lg hover:opacity-90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Icon name="mdi:rocket" class="inline-block w-6 h-6 mr-1" />
             Get Quote & Book
           </button>
+        </div>
       </form>
     </div>
   </div>
   <div id="user-id-container" data-user-id="" class="hidden"></div>
-
 </section>
 
 <style>
   .gradient-text {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600;
   }
-  /* Add these new styles for the suggestion items */
+  
   #pickupSuggestions li,
   #destinationSuggestions li {
-    @apply px-3 py-2 hover:bg-gray-700 cursor-pointer text-white;
+    @apply px-3 py-2 hover:bg-gray-700 cursor-pointer text-white text-base md:text-sm;
+  }
+
+  /* Force full width on mobile */
+  @media (max-width: 768px) {
+    .container {
+      max-width: 100% !important;
+      padding: 0.5rem !important;
+    }
+    
+    input, select, button {
+      width: 100% !important;
+    }
   }
 </style>
 <script src="https://js.stripe.com/v3/"></script>
