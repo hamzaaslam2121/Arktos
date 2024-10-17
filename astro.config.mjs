@@ -1,29 +1,24 @@
 import tailwind from "@astrojs/tailwind";
 import icon from "astro-icon";
 import { defineConfig } from "astro/config";
+import node from "@astrojs/node";
 import clerk from "@clerk/astro";
-
 // https://astro.build/config
 export default defineConfig({
-  site: "https://arknetcouriers.co.uk/",
+  site: "https://astro-moon-landing.netlify.app/",
   integrations: [
     clerk(),
     tailwind(),
     icon({
-      iconDirectory: 'src/icons',
+      iconDirectory: 'src/icons', // Ensure this path is correct based on your project structure
     })
   ],
+  adapter: node({ mode: "standalone" }),
+  output: "server",
   vite: {
-    define: {
-      'import.meta.env.PUBLIC_WORKER_URL': JSON.stringify(process.env.PUBLIC_WORKER_URL || 'https://worker-backend.hamzaaslam2121.workers.dev'),
-    },
     server: {
       proxy: {
-        '/api': {
-          target: 'https://worker-backend.hamzaaslam2121.workers.dev',
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api/, ''),
-        },
+        '/api': 'http://localhost:8787', // Proxy API requests to the Cloudflare Worker
       },
     },
   },
