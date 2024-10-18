@@ -196,14 +196,29 @@ const protectedNavItem: Array<NavItem> = [
 </script>
 
 <style>
+  .modal.is-open {
+    @apply block;
+  }
   .fixed-header {
     @apply fixed bottom-auto top-0;
     @apply border-default bg-default text-default;
   }
-  .modal.is-open {
-    @apply block;
-  }
-  nav a {
-    @apply text-lg font-normal py-2 px-4;
+  @media (max-width: 768px) {
+    #menu-modal nav ul {
+      @apply mt-8;
+    }
+    
+    #menu-modal nav a,
+    #menu-modal .sign-in-button {
+      @apply text-2xl py-4;
+      font-weight: 500;
+    }
+    
+    #menu-modal nav a:active {
+      @apply bg-opacity-10 bg-primary;
+    }
+    nav a {
+      @apply text-lg font-normal py-2 px-4;
+    }
   }
 </style>

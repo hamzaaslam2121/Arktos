@@ -17,7 +17,7 @@ const sizes = "(min-width: 640px) 42vw, 67vw";
     <HeroImage />
   </div>
 
-  <div class="call-to-action absolute top-1/2 left-0.5 right-0 z-10 bg-black bg-opacity-0 text-white text-center" style="font-family: 'Gopher', sans-serif; font-style: normal; font-weight: 700;">
+  <div class="call-to-action absolute top-1/5 left-0.5 right-0 z-10 bg-black bg-opacity-0 text-white text-center" style="font-family: 'Gopher', sans-serif; font-style: normal; font-weight: 700;">
    
     <a
       href="tel:+44 07899 819297"  
@@ -56,7 +56,7 @@ const sizes = "(min-width: 640px) 42vw, 67vw";
     </div>
   </div>
   
-  <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-10">
+  <div>
     <a
       href="/quickquote"
       class="get-quote-button text-white px-10 py-4 rounded-full font-bold text-xl hover:opacity-90 transition-all duration-300 flex items-center space-x-3"
@@ -75,7 +75,7 @@ const sizes = "(min-width: 640px) 42vw, 67vw";
   </style>
 </noscript>
 
-<style>
+<style is:global>
   @keyframes float {
     0% {
       transform: translate3d(0, 0, 0);
@@ -93,6 +93,11 @@ const sizes = "(min-width: 640px) 42vw, 67vw";
   .get-quote-button {
     background: linear-gradient(135deg, #8811f8, #e72a89);
     box-shadow: 0 0 20px rgba(255, 255, 255, 0.183);
+    z-index: 20;
+    position: absolute;
+    bottom: 3vh;
+    left: 50%;
+    transform: translateX(-50%);
   }
 
   .get-quote-button:hover {
@@ -115,6 +120,7 @@ const sizes = "(min-width: 640px) 42vw, 67vw";
   .call-to-action span {
     font-size: 30px; 
   }
+  
   @media (max-width: 768px) {
     .call-to-action a {
       flex-direction: column-reverse;
@@ -142,13 +148,15 @@ const sizes = "(min-width: 640px) 42vw, 67vw";
     }
     .get-quote-button {
       position: fixed;
-      bottom: 0vh;
+      bottom: 3vh;
       left: 50%;
       transform: translateX(-50%);
       z-index: 30;
       animation: pulse 2s infinite;
       width: 165px;
       height: 50px;
+      z-index: 10;
+
     }
     @keyframes pulse {
       0% {
