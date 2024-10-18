@@ -36,7 +36,7 @@ const protectedNavItem: Array<NavItem> = [
               </li>
             ))
           }
-          <SignedIn> {/* Orders link shown only when signed in */}
+          <SignedIn>
             {
               protectedNavItem.map(({ title, url }) => (
                 <li>
@@ -47,48 +47,39 @@ const protectedNavItem: Array<NavItem> = [
               ))
             }
           </SignedIn>
-          <nav></nav>
           <li>
             <SignedOut>
               <SignInButton mode="redirect" class="sign-in-button" style="font-size: 1.5rem;"/>
             </SignedOut>
-            
             <SignedIn>
-              <div class="user-button-wrapper"> <UserButton 
-                appearance={{
-                  elements: {
-                    avatarBox: "h-10 w-10",
-                    card: "w-[400px] max-w-[85vw]", 
-                  },
-                  variables: {
-                    fontSize: "1.2",
-                  },
-                }}
-                showName={false}
-                userProfileProps={{
-                  appearance: {
+              <div class="user-button-wrapper">
+                <UserButton 
+                  appearance={{
                     elements: {
-                      rootBox: "w-full max-w-[800px] mx-auto",
-                      card: "shadow-none",
-                      navbar: "hidden",
-                      // Add more custom styles for the UserProfile popup here
+                      avatarBox: "h-10 w-10",
+                      card: "w-[400px] max-w-[85vw]",
                     },
                     variables: {
-                    // Adjust global variables if available
-                    fontSize: "1.5",
-                  },
-                  },
-                  
-                }}
-              /> </div> 
-              
+                      fontSize: "1.2",
+                    },
+                  }}
+                  showName={false}
+                  userProfileProps={{
+                    appearance: {
+                      elements: {
+                        rootBox: "w-full max-w-[800px] mx-auto",
+                        card: "shadow-none",
+                        navbar: "hidden",
+                      },
+                      variables: {
+                        fontSize: "1.5",
+                      },
+                    },
+                  }}
+                />
+              </div>
             </SignedIn>
           </li>
-          <SignedIn>             <nav></nav>
-          </SignedIn>
-          <SignedOut>
-            <nav></nav>
-          </SignedOut>
         </ul>
       </nav>
       <button
@@ -128,6 +119,34 @@ const protectedNavItem: Array<NavItem> = [
                   </li>
                 ))
               }
+              <SignedIn>
+                {
+                  protectedNavItem.map(({ title, url }) => (
+                    <li>
+                      <a class="block py-4 text-center text-xl" href={url}>
+                        {title}
+                      </a>
+                    </li>
+                  ))
+                }
+              </SignedIn>
+              <li class="py-4 text-center">
+                <SignedOut>
+                  <SignInButton mode="redirect" class="sign-in-button text-xl"/>
+                </SignedOut>
+                <SignedIn>
+                  <div class="flex justify-center">
+                    <UserButton 
+                      appearance={{
+                        elements: {
+                          avatarBox: "h-10 w-10",
+                          card: "w-[400px] max-w-[85vw]",
+                        },
+                      }}
+                    />
+                  </div>
+                </SignedIn>
+              </li>
             </ul>
           </nav>
         </div>
@@ -175,14 +194,6 @@ const protectedNavItem: Array<NavItem> = [
     }
   });
 </script>
-
-<noscript>
-  <style>
-    #open-nav-button {
-      display: none;
-    }
-  </style>
-</noscript>
 
 <style>
   .fixed-header {

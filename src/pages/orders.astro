@@ -245,18 +245,201 @@ let responseText: string | null = null;
             padding-bottom: 5rem;
         }
         @media (max-width: 768px) {
-            .orders-table {
-                font-size: 1.1rem;
-            }
-            
-            .orders-table th,
-            .orders-table td {
-                padding: 1rem;
-            }
-            .datetime {
-                font-size: 0.8rem;
-            }
+    /* Adjust main content padding */
+    main {
+        padding: calc(4rem + 2rem) 1rem !important;
+    }
+    
+    /* Adjust gradient text size */
+    .gradient-text {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        margin-top: 1rem;
+    }
+
+    /* Table adjustments */
+    #orders-container .orders-table {
+        display: block;
+        overflow-x: hidden;
+        font-size: 0.9rem;
+    }
+
+    #orders-container .orders-table th,
+    #orders-container .orders-table td {
+        padding: 0.75rem;
+    }
+
+    /* Stack table on very small screens */
+    @media (max-width: 480px) {
+        /* Add mobile sorting controls at the top */
+        .mobile-sort-controls {
+        margin-bottom: 1rem;
+        position: relative;
+    }
+
+    .sort-dropdown-button {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+        color: var(--text-primary);
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .sort-dropdown-button:hover {
+        background-color: var(--hover-bg);
+    }
+
+    .sort-dropdown-menu {
+        position: absolute;
+        top: calc(100% + 0.5rem);
+        left: 0;
+        right: 0;
+        background-color: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+        box-shadow: var(--shadow);
+        z-index: 50;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: all 0.2s ease;
+    }
+
+    .sort-dropdown-menu.show {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    .sort-dropdown-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: none;
+        background: none;
+        color: var(--text-primary);
+        font-size: 1rem;
+        text-align: left;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+    .sort-dropdown-item:not(:last-child) {
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .sort-dropdown-item:hover {
+        background-color: var(--hover-bg);
+    }
+
+    .sort-dropdown-item.active {
+        color: var(--text-primary);
+        background-color: var(--hover-bg);
+    }
+
+    .sort-indicator {
+        display: inline-block;
+        width: 0;
+        height: 0;
+        margin-left: 0.5rem;
+        border-left: 4px solid transparent;
+        border-right: 4px solid transparent;
+    }
+
+    .sort-indicator.asc {
+        border-bottom: 4px solid currentColor;
+    }
+
+    .sort-indicator.desc {
+        border-top: 4px solid currentColor;
+    }
+        #orders-container .orders-table thead {
+            display: none;
         }
+
+        #orders-container .orders-table tbody,
+        #orders-container .orders-table tr,
+        #orders-container .orders-table td {
+            display: block;
+            width: 100%;
+        }
+
+        #orders-container .orders-table tr {
+            margin-bottom: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            background-color: var(--bg-secondary);
+        }
+
+        #orders-container .orders-table td {
+            text-align: left;
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+            padding-left: 45%;
+        }
+
+        #orders-container .orders-table td:last-child {
+            border-bottom: none;
+        }
+
+        /* Add labels for each cell */
+        #orders-container .orders-table td::before {
+            content: attr(data-label);
+            position: absolute;
+            left: 0.75rem;
+            width: 40%;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        /* Adjust specific cell styles */
+        #orders-container .price {
+            font-size: 1.1rem;
+        }
+
+        #orders-container .status-badge {
+            font-size: 0.9rem;
+            padding: 0.35rem 0.75rem;
+        }
+
+        .datetime {
+            font-size: 0.9rem;
+        }
+    }
+
+    /* Pagination adjustments for mobile */
+    .pagination {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .pagination button {
+        padding: 0.35rem 0.75rem;
+        font-size: 0.9rem;
+    }
+
+    .pagination span {
+        font-size: 0.9rem;
+    }
+
+    .pagination input {
+        width: 40px;
+        font-size: 0.9rem;
+        padding: 0.2rem;
+    }
+}
         /* Override ThemeSwitcher styles for orders page */
         #theme-switcher {
             margin-left: 0 !important;
@@ -411,79 +594,204 @@ let responseText: string | null = null;
         }
     }
 
+    function createMobileSortControls() {
+        const sortOptions = [
+            { key: 'datetime', label: 'Date & Time' },
+            { key: 'price', label: 'Price' },
+            { key: 'status', label: 'Status' },
+            { key: 'address', label: 'Address' }
+        ];
 
+        const controls = document.createElement('div');
+        controls.className = 'mobile-sort-controls';
+
+        sortOptions.forEach(option => {
+            const button = document.createElement('button');
+            button.className = 'mobile-sort-button';
+            button.setAttribute('data-sort', option.key);
+            
+            const indicator = document.createElement('span');
+            indicator.className = 'sort-indicator';
+            
+            button.textContent = option.label;
+            button.appendChild(indicator);
+
+            button.addEventListener('click', () => {
+                // Remove active class from all buttons
+                controls.querySelectorAll('.mobile-sort-button').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+
+                // Add active class to clicked button
+                button.classList.add('active');
+
+                // Update sort indicator
+                const isCurrentSort = currentSortKey === option.key;
+                isAscending = isCurrentSort ? !isAscending : true;
+                
+                // Update indicator classes
+                controls.querySelectorAll('.sort-indicator').forEach(ind => {
+                    ind.classList.remove('asc', 'desc');
+                });
+                indicator.classList.add(isAscending ? 'asc' : 'desc');
+
+                // Perform the sort
+                sortOrders(option.key);
+            });
+
+            controls.appendChild(button);
+        });
+
+        return controls;
+    }
     let currentPage = 1;
     const ordersPerPage = 15;
     let allOrders: Order[] = [];
     let currentSortKey: string | null = null;
     let isAscending = false;
 
-    function renderOrders() {
-        const container = document.querySelector('#orders-container');
-        if (!container) {
-            console.error("Orders container not found");
-            return;
-        }
+// Add type definition for sort keys
+type SortKey = 'datetime' | 'price' | 'status' | 'address';
 
-        if (!allOrders || allOrders.length === 0) {
-            container.innerHTML = '<div class="no-orders"><p>You have no orders yet.</p></div>';
-            return;
-        }
+function getSortLabel(key: SortKey): string {
+    const labels: Record<SortKey, string> = {
+        'datetime': 'Date & Time',
+        'price': 'Price',
+        'status': 'Status',
+        'address': 'Delivery Address'
+    };
+    return labels[key] || key;
+}
 
-        const totalPages = Math.ceil(allOrders.length / ordersPerPage);
-        const startIndex = (currentPage - 1) * ordersPerPage;
-        const endIndex = startIndex + ordersPerPage;
-        const currentOrders = allOrders.slice(startIndex, endIndex);
 
-        let tableHTML = `
-            <div class="orders-container">
-                <table class="orders-table">
-                    <thead>
-                        <tr>
-                            <th class="sortable" data-sort="address">Delivery Address <span class="sort-icon"></span></th>
-                            <th class="sortable" data-sort="price">Price <span class="sort-icon"></span></th>
-                            <th class="sortable" data-sort="status">Status <span class="sort-icon"></span></th>
-                            <th class="sortable" data-sort="datetime">Date & Time <span class="sort-icon"></span></th>
-                        </tr>
-                    </thead>
-                    <tbody>
+
+
+function renderOrders() {
+    const container = document.querySelector('#orders-container');
+    if (!container) {
+        console.error("Orders container not found");
+        return;
+    }
+
+    if (!allOrders || allOrders.length === 0) {
+        container.innerHTML = '<div class="no-orders"><p>You have no orders yet.</p></div>';
+        return;
+    }
+
+    const totalPages = Math.ceil(allOrders.length / ordersPerPage);
+    const startIndex = (currentPage - 1) * ordersPerPage;
+    const endIndex = startIndex + ordersPerPage;
+    const currentOrders = allOrders.slice(startIndex, endIndex);
+
+    // Create the container for the entire content
+    let completeHTML = `
+        <div class="mobile-sort-controls">
+            <button class="sort-dropdown-button" aria-haspopup="true" aria-expanded="false">
+                Sort by: ${currentSortKey ? getSortLabel(currentSortKey as SortKey) : 'Date & Time'}
+                <span class="sort-indicator ${isAscending ? 'asc' : 'desc'}"></span>
+            </button>
+            <div class="sort-dropdown-menu">
+                <button class="sort-dropdown-item ${currentSortKey === 'datetime' ? 'active' : ''}" data-sort="datetime">
+                    Date & Time
+                    ${currentSortKey === 'datetime' ? `<span class="sort-indicator ${isAscending ? 'asc' : 'desc'}"></span>` : ''}
+                </button>
+                <button class="sort-dropdown-item ${currentSortKey === 'price' ? 'active' : ''}" data-sort="price">
+                    Price
+                    ${currentSortKey === 'price' ? `<span class="sort-indicator ${isAscending ? 'asc' : 'desc'}"></span>` : ''}
+                </button>
+                <button class="sort-dropdown-item ${currentSortKey === 'status' ? 'active' : ''}" data-sort="status">
+                    Status
+                    ${currentSortKey === 'status' ? `<span class="sort-indicator ${isAscending ? 'asc' : 'desc'}"></span>` : ''}
+                </button>
+                <button class="sort-dropdown-item ${currentSortKey === 'address' ? 'active' : ''}" data-sort="address">
+                    Delivery Address
+                    ${currentSortKey === 'address' ? `<span class="sort-indicator ${isAscending ? 'asc' : 'desc'}"></span>` : ''}
+                </button>
+            </div>
+        </div>
+        <div class="orders-container">
+            <table class="orders-table">
+                <thead>
+                    <tr>
+                        <th class="sortable" data-sort="address">Delivery Address <span class="sort-icon"></span></th>
+                        <th class="sortable" data-sort="price">Price <span class="sort-icon"></span></th>
+                        <th class="sortable" data-sort="status">Status <span class="sort-icon"></span></th>
+                        <th class="sortable" data-sort="datetime">Date & Time <span class="sort-icon"></span></th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+
+    currentOrders.forEach((order: Order) => {
+        const formattedDate = formatDate(order.datetime);
+        completeHTML += `
+            <tr>
+                <td data-label="Delivery Address" data-address="${order.destination}">${order.destination}</td>
+                <td data-label="Price" data-price="${order.price.toFixed(2)}">
+                    <span class="price">£${order.price.toFixed(2)}</span>
+                </td>
+                <td data-label="Status" data-status="${order.completed ? 'Completed' : 'Pending'}">
+                    <span class="status-badge ${order.completed ? 'completed' : 'pending'}">
+                        ${order.completed ? 'Completed' : 'Pending'}
+                    </span>
+                </td>
+                <td data-label="Date & Time" class="datetime" data-datetime="${order.datetime || ''}">
+                    ${formattedDate}
+                </td>
+            </tr>
         `;
+    });
 
-        currentOrders.forEach((order: Order) => {
-            const formattedDate = formatDate(order.datetime);
-            tableHTML += `
-                <tr>
-                    <td data-address="${order.destination}">${order.destination}</td>
-                    <td data-price="${order.price.toFixed(2)}">
-                        <span class="price">£${order.price.toFixed(2)}</span>
-                    </td>
-                    <td data-status="${order.completed ? 'Completed' : 'Pending'}">
-                        <span class="status-badge ${order.completed ? 'completed' : 'pending'}">
-                            ${order.completed ? 'Completed' : 'Pending'}
-                        </span>
-                    </td>
-                    <td class="datetime" data-datetime="${order.datetime || ''}">
-                        ${formattedDate}
-                    </td>
-                </tr>
-            `;
+    completeHTML += `
+                </tbody>
+            </table>
+            <div class="pagination">
+                <button id="prevPage" ${currentPage === 1 ? 'disabled' : ''}>Previous</button>
+                <span>Page <input type="number" id="currentPageInput" value="${currentPage}" min="1" max="${totalPages}"> of ${totalPages}</span>
+                <button id="nextPage" ${currentPage === totalPages ? 'disabled' : ''}>Next</button>
+            </div>
+        </div>
+    `;
+
+    container.innerHTML = completeHTML;
+
+    // Add dropdown toggle functionality
+    const dropdownButton = container.querySelector('.sort-dropdown-button');
+    const dropdownMenu = container.querySelector('.sort-dropdown-menu');
+    
+    if (dropdownButton && dropdownMenu) {
+        dropdownButton.addEventListener('click', () => {
+            const isExpanded = dropdownMenu.classList.contains('show');
+            dropdownMenu.classList.toggle('show');
+            dropdownButton.setAttribute('aria-expanded', isExpanded ? 'false' : 'true');
         });
 
-        tableHTML += `
-                    </tbody>
-                </table>
-                <div class="pagination">
-                    <button id="prevPage" ${currentPage === 1 ? 'disabled' : ''}>Previous</button>
-                    <span>Page <input type="number" id="currentPageInput" value="${currentPage}" min="1" max="${totalPages}"> of ${totalPages}</span>
-                    <button id="nextPage" ${currentPage === totalPages ? 'disabled' : ''}>Next</button>
-                </div>
-            </div>
-        `;
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (event: MouseEvent) => {
+            const target = event.target as Node;
+            if (!dropdownButton.contains(target) && !dropdownMenu.contains(target)) {
+                dropdownMenu.classList.remove('show');
+                dropdownButton.setAttribute('aria-expanded', 'false');
+            }
+        });
 
-        container.innerHTML = tableHTML;
-        addTableClickEvent();
-        addPaginationEvents();
+        // Add click handlers for dropdown items
+        const dropdownItems = container.querySelectorAll('.sort-dropdown-item');
+        dropdownItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const sortKey = item.getAttribute('data-sort') as SortKey;
+                if (sortKey) {
+                    sortOrders(sortKey);
+                    dropdownMenu.classList.remove('show');
+                    dropdownButton.setAttribute('aria-expanded', 'false');
+                }
+            });
+        });
     }
+
+    addTableClickEvent();
+    addPaginationEvents();
+}
 
     function addPaginationEvents() {
         const prevButton = document.getElementById('prevPage');
