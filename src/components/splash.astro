@@ -17,13 +17,13 @@ const sizes = "(min-width: 640px) 42vw, 67vw";
     <HeroImage />
   </div>
 
-  <div class="call-to-action absolute top-1/5 left-0.5 right-0 z-10 bg-black bg-opacity-0 text-white text-center" style="font-family: 'Gopher', sans-serif; font-style: normal; font-weight: 700;">
+  <div class="call-to-action absolute top-1/2 left-0.5 right-0 z-10 bg-black bg-opacity-0 text-white text-center" style="font-family: 'Gopher', sans-serif; font-style: normal; font-weight: 700;">
    
     <a
       href="tel:+44 07899 819297"  
       class="flex items-center justify-center gap-3 border-0 border-current px-5 py-4"
     >
-      <Icon name="mdi:phone" class="phoneicon size-11" />
+      <Icon name="mdi:phone" class="phoneicon size-7" />
       <span>Get a  <span class="text-primary"> quote </span> by clicking me to call us at <span class="text-primary">07899 819297</span> or scroll down to get in touch via email!</span>
     </a>
   </div>
@@ -43,7 +43,7 @@ const sizes = "(min-width: 640px) 42vw, 67vw";
     </h2>
     <div
       id="astronaut"
-      class="relative w-2/3 max-w-3xl self-start sm:w-10/12 sm:self-auto sm:justify-self-start"
+      class="relative w-1/2 max-w-3xl self-start sm:w-10/12 sm:self-auto sm:justify-self-start"
     >
       <Image
         class="h-full w-full object-cover"
@@ -56,7 +56,7 @@ const sizes = "(min-width: 640px) 42vw, 67vw";
     </div>
   </div>
   
-  <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-20">
+  <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-10">
     <a
       href="/quickquote"
       class="get-quote-button text-white px-10 py-4 rounded-full font-bold text-xl hover:opacity-90 transition-all duration-300 flex items-center space-x-3"
@@ -121,14 +121,14 @@ const sizes = "(min-width: 640px) 42vw, 67vw";
       gap: 1rem;
     }
     .call-to-action span {
-      font-size: 16px; 
+      font-size: 12px; 
     }
     .call-to-action .phoneicon {
-      display: block;
+      display: none;
       margin: 0 auto;
     }
     .call-to-action {
-      bottom: 0vh;
+      top: -2vh;
       left: 0;
       right: 0;
       display: flex;
@@ -138,11 +138,11 @@ const sizes = "(min-width: 640px) 42vw, 67vw";
       padding: 2rem 1rem;
     }
     #astronaut {
-      margin-top: -15vh;
+      margin-top: -10000vh;
     }
     .get-quote-button {
       position: fixed;
-      bottom: 20px;
+      bottom: 0vh;
       left: 50%;
       transform: translateX(-50%);
       z-index: 30;
