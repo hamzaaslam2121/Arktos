@@ -1,16 +1,7 @@
 ---
-<<<<<<< HEAD
 import { SignedOut, SignedIn, UserButton } from "@clerk/astro/components";
 import { Icon } from "astro-icon/components";
 import ThemeSwitcher from "~/components/theme-switcher.astro";
-=======
-import { SignedOut, SignInButton, SignedIn, UserButton } from "@clerk/astro/components";
-import { Icon } from "astro-icon/components";
-import Header from "~/components/header.astro";
-import ThemeSwitcher from "~/components/theme-switcher.astro";
-
-import "~/styles/index.css";
->>>>>>> 255f8a7a779c75cd381e1ab5ae20b8bfd74bab8d
 ---
 
 <!DOCTYPE html>
@@ -31,29 +22,17 @@ import "~/styles/index.css";
       padding: 0;
       background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
       color: #fff;
-<<<<<<< HEAD
       font-size: 1rem;
     }
 
     .container {
       max-width: 800px;
-=======
-      font-size: 2rem;
-    }
-
-    .container {
-      max-width: 600px;
->>>>>>> 255f8a7a779c75cd381e1ab5ae20b8bfd74bab8d
       margin: 5rem auto;
       padding: 2rem;
       background-color: rgba(255, 255, 255, 0.1);
       box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
       border-radius: 10px;
       backdrop-filter: blur(10px);
-<<<<<<< HEAD
-=======
-      color: #fff;
->>>>>>> 255f8a7a779c75cd381e1ab5ae20b8bfd74bab8d
     }
 
     h1, h2 {
@@ -64,7 +43,6 @@ import "~/styles/index.css";
       margin-bottom: 1rem;
     }
 
-<<<<<<< HEAD
     h1 {
       font-size: 2rem;
     }
@@ -118,68 +96,32 @@ import "~/styles/index.css";
       clip: rect(0, 0, 0, 0);
       white-space: nowrap;
       border-width: 0;
-=======
-    p {
-      margin-top: 1rem;
-      font-size: 1.2rem;
-      color: #e0e0e0;
->>>>>>> 255f8a7a779c75cd381e1ab5ae20b8bfd74bab8d
     }
-
-    ul {
-      list-style-type: disc;
-      margin-left: 2rem;
-    }
-
-    ul li {
-      margin-top: 0.8rem;
-      color: #e0e0e0;
-    }
-
   </style>
 </head>
 <body>
     <header
         id="page-header"
-<<<<<<< HEAD
         class="fixed top-0 z-20 flex w-full items-center justify-between border-b border-transparent px-7 py-3 bg-default"
     >
         <a class="flex items-center gap-2 hover:!text-default" href="/">
             <h1 class="sr-only">Arknet</h1>
             <Icon name="arknetAlogo" class="size-7" />
             <Icon name="arknetnolog" class="hidden h-3 sm:block" />
-=======
-        class="fixed top-0 z-20 flex w-full items-center justify-between border-b border-transparent px-8 py-4 bg-default"
-    >
-        <a class="flex items-center gap-3 hover:!text-default" href="/">
-            <h1 class="sr-only">Arknet</h1>
-            <Icon name="arknetAlogo" class="size-10" />
-            <Icon name="arknetnolog" class="hidden h-4 sm:block" />
->>>>>>> 255f8a7a779c75cd381e1ab5ae20b8bfd74bab8d
         </a>
         
         <div class="flex items-center gap-6">
             <ThemeSwitcher />
             <li class="list-none">
                 <SignedOut>
-<<<<<<< HEAD
                 </SignedOut>
                 
                 <!-- <SignedIn>
-=======
-                  </SignedOut>
-                
-                <SignedIn>
->>>>>>> 255f8a7a779c75cd381e1ab5ae20b8bfd74bab8d
                     <div class="user-button-wrapper">
                         <UserButton 
                         appearance={{
                             elements: {
-<<<<<<< HEAD
                             avatarBox: "h-7 w-7",
-=======
-                            avatarBox: "h-10 w-10",
->>>>>>> 255f8a7a779c75cd381e1ab5ae20b8bfd74bab8d
                             card: "w-[400px] max-w-[85vw]", 
                             },
                             variables: {
@@ -195,17 +137,12 @@ import "~/styles/index.css";
                                 navbar: "hidden",
                             },
                             variables: {
-<<<<<<< HEAD
                                 fontSize: "1",
-=======
-                                fontSize: "1.5",
->>>>>>> 255f8a7a779c75cd381e1ab5ae20b8bfd74bab8d
                             },
                             },
                         }}
                         />
                     </div>
-<<<<<<< HEAD
                 </SignedIn> -->
             </li>
         </div>
@@ -246,24 +183,6 @@ import "~/styles/index.css";
         <li>Phone: (555) 123-4567</li>
       </ul>
     </div>
-=======
-                </SignedIn>
-            </li>
-            <nav></nav>
-        </div>
-        
-    </header>
-  <div class="container">
-    <h2>Cancellation Policy</h2>
-    <p>Cancellations can be made up to 24 hours before the pick-up time without any fee. No refunds will be given for deliveries that are cancelled less than 24 hours before the scheduled pick-up time.</p>
-    <h3>Additional Information:</h3>
-    <ul>
-      <li>If a cancellation is made after a driver has been dispatched, a partial fee may be applied to cover the travel costs incurred.</li>
-      <li>In the case of repeated cancellations or no-shows, Arknet reserves the right to refuse future bookings.</li>
-      <li>For rescheduling requests, please contact us directly via email or phone. Rescheduling is subject to availability.</li>
-      <li>Refunds will be processed within 7-10 business days for eligible cancellations.</li>
-    </ul>
->>>>>>> 255f8a7a779c75cd381e1ab5ae20b8bfd74bab8d
   </div>
 </body>
 </html>
