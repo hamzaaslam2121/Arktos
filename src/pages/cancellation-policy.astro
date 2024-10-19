@@ -1,3 +1,12 @@
+---
+import { SignedOut, SignInButton, SignedIn, UserButton } from "@clerk/astro/components";
+import { Icon } from "astro-icon/components";
+import Header from "~/components/header.astro";
+import ThemeSwitcher from "~/components/theme-switcher.astro";
+
+import "~/styles/index.css";
+---
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,24 +23,26 @@
       line-height: 1.6;
       margin: 0;
       padding: 0;
-      background-color: #f9f9f9;
-      color: #333;
+      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+      color: #fff;
       font-size: 2rem;
     }
 
     .container {
       max-width: 600px;
-      margin: 2rem auto;
+      margin: 5rem auto;
       padding: 2rem;
-      background-color: #fff;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
-      border-radius: 8px;
+      background-color: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+      border-radius: 10px;
+      backdrop-filter: blur(10px);
+      color: #fff;
     }
 
     h2 {
       font-weight: 600;
-      color: #444;
-      border-bottom: 2px solid #ddd;
+      color: #ffffff;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.3);
       padding-bottom: 0.5rem;
       margin-bottom: 1rem;
     }
@@ -39,14 +50,81 @@
     p {
       margin-top: 1rem;
       font-size: 1.2rem;
-      color: #555;
+      color: #e0e0e0;
     }
+
+    ul {
+      list-style-type: disc;
+      margin-left: 2rem;
+    }
+
+    ul li {
+      margin-top: 0.8rem;
+      color: #e0e0e0;
+    }
+
   </style>
 </head>
 <body>
+    <header
+        id="page-header"
+        class="fixed top-0 z-20 flex w-full items-center justify-between border-b border-transparent px-8 py-4 bg-default"
+    >
+        <a class="flex items-center gap-3 hover:!text-default" href="/">
+            <h1 class="sr-only">Arknet</h1>
+            <Icon name="arknetAlogo" class="size-10" />
+            <Icon name="arknetnolog" class="hidden h-4 sm:block" />
+        </a>
+        
+        <div class="flex items-center gap-6">
+            <ThemeSwitcher />
+            <li class="list-none">
+                <SignedOut>
+                  </SignedOut>
+                
+                <SignedIn>
+                    <div class="user-button-wrapper">
+                        <UserButton 
+                        appearance={{
+                            elements: {
+                            avatarBox: "h-10 w-10",
+                            card: "w-[400px] max-w-[85vw]", 
+                            },
+                            variables: {
+                            fontSize: "1.2",
+                            },
+                        }}
+                        showName={false}
+                        userProfileProps={{
+                            appearance: {
+                            elements: {
+                                rootBox: "w-full max-w-[800px] mx-auto",
+                                card: "shadow-none",
+                                navbar: "hidden",
+                            },
+                            variables: {
+                                fontSize: "1.5",
+                            },
+                            },
+                        }}
+                        />
+                    </div>
+                </SignedIn>
+            </li>
+            <nav></nav>
+        </div>
+        
+    </header>
   <div class="container">
     <h2>Cancellation Policy</h2>
     <p>Cancellations can be made up to 24 hours before the pick-up time without any fee. No refunds will be given for deliveries that are cancelled less than 24 hours before the scheduled pick-up time.</p>
+    <h3>Additional Information:</h3>
+    <ul>
+      <li>If a cancellation is made after a driver has been dispatched, a partial fee may be applied to cover the travel costs incurred.</li>
+      <li>In the case of repeated cancellations or no-shows, Arknet reserves the right to refuse future bookings.</li>
+      <li>For rescheduling requests, please contact us directly via email or phone. Rescheduling is subject to availability.</li>
+      <li>Refunds will be processed within 7-10 business days for eligible cancellations.</li>
+    </ul>
   </div>
 </body>
 </html>
