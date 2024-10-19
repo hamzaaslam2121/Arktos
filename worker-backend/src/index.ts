@@ -19,7 +19,7 @@ interface QuoteData {
   weight: number;
   datetime: string; 
   email: string;
-  phone_number: string;
+  //phone_number: string;
 }
 
 interface PostcodesIOResponse {
@@ -225,8 +225,8 @@ async function handleCreateCheckoutSession(request: Request, env: Env, headers: 
     const pendingResult = await env.MY_DB.prepare(
       `INSERT INTO pending_orders (
         user, pickup, destination, price, completed, serviceLevel, 
-        shippingType, weight, datetime, status, email, phone_number
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        shippingType, weight, datetime, status, email
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .bind(
       data.user,
@@ -240,7 +240,7 @@ async function handleCreateCheckoutSession(request: Request, env: Env, headers: 
       data.datetime,
       'pending',
       data.email,
-      data.phone_number,
+      //data.phone_number,
     )
     .run();
 
@@ -276,7 +276,7 @@ async function handleCreateCheckoutSession(request: Request, env: Env, headers: 
         weight: data.weight.toString(),
         datetime: data.datetime,
         email: data.email,
-        phone_number: data.phone_number
+        //phone_number: data.phone_number
       },
     });
 
@@ -342,7 +342,7 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
 
       // Log individual metadata fields
       console.log('Email from metadata:', metadata.email);
-      console.log('Phone number from metadata:', metadata.phone_number);
+      //console.log('Phone number from metadata:', metadata.phone_number);
 
       const statements = [];
 
@@ -350,8 +350,8 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
       const insertStatement = env.MY_DB.prepare(
         `INSERT INTO orders (
           user, pickup, destination, price, completed, serviceLevel, 
-          shippingType, weight, datetime, stripe_payment_intent_id, email, phone_number
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          shippingType, weight, datetime, stripe_payment_intent_id, email
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       );
 
       const values = [
@@ -366,7 +366,7 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
         metadata.datetime,
         session.payment_intent as string,
         metadata.email,
-        metadata.phone_number
+        //metadata.phone_number
       ];
 
       console.log('Values to be inserted:', values); // Log the values being inserted
