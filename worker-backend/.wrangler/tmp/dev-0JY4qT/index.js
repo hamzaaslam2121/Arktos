@@ -7596,7 +7596,6 @@ async function handleCreateCheckoutSession(request, env, headers) {
       data.datetime,
       "pending",
       data.email
-      //data.phone_number,
     ).run();
     const pendingOrderId = pendingResult.meta?.last_row_id;
     const session = await stripe.checkout.sessions.create({
@@ -7617,6 +7616,9 @@ async function handleCreateCheckoutSession(request, env, headers) {
       mode: "payment",
       success_url: `${request.headers.get("Origin")}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${request.headers.get("Origin")}/quickquote`,
+      phone_number_collection: {
+        enabled: true
+      },
       metadata: {
         pending_order_id: pendingOrderId?.toString(),
         user: data.user,
@@ -7629,7 +7631,6 @@ async function handleCreateCheckoutSession(request, env, headers) {
         weight: data.weight.toString(),
         datetime: data.datetime,
         email: data.email
-        //phone_number: data.phone_number
       }
     });
     return new Response(JSON.stringify({ sessionId: session.id, url: session.url }), {
@@ -7684,12 +7685,14 @@ async function handleWebhook(request, env) {
         throw new Error("No metadata found in session");
       }
       console.log("Email from metadata:", metadata.email);
+      console.log("Customer details:", session.customer_details);
+      const phoneNumber = session.customer_details?.phone || "";
       const statements = [];
       const insertStatement = env.MY_DB.prepare(
         `INSERT INTO orders (
           user, pickup, destination, price, completed, serviceLevel, 
-          shippingType, weight, datetime, stripe_payment_intent_id, email
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          shippingType, weight, datetime, stripe_payment_intent_id, email, phone_number
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       );
       const values = [
         metadata.user,
@@ -7702,8 +7705,8 @@ async function handleWebhook(request, env) {
         parseFloat(metadata.weight),
         metadata.datetime,
         session.payment_intent,
-        metadata.email
-        //metadata.phone_number
+        metadata.email,
+        phoneNumber
       ];
       console.log("Values to be inserted:", values);
       const boundStatement = insertStatement.bind(...values);

@@ -1,3 +1,9 @@
+---
+import { SignedOut, SignedIn, UserButton } from "@clerk/astro/components";
+import { Icon } from "astro-icon/components";
+import ThemeSwitcher from "~/components/theme-switcher.astro";
+---
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,7 +11,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cancellation Policy - Arknet Couriers</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Gopher:wght@100&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Gopher:wght@100;300;600&display=swap');
 
     body {
       font-family: 'Gopher', sans-serif;
@@ -14,39 +20,169 @@
       line-height: 1.6;
       margin: 0;
       padding: 0;
-      background-color: #f9f9f9;
-      color: #333;
-      font-size: 2rem;
+      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+      color: #fff;
+      font-size: 1rem;
     }
 
     .container {
-      max-width: 600px;
-      margin: 2rem auto;
+      max-width: 800px;
+      margin: 5rem auto;
       padding: 2rem;
-      background-color: #fff;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
-      border-radius: 8px;
+      background-color: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+      border-radius: 10px;
+      backdrop-filter: blur(10px);
     }
 
-    h2 {
+    h1, h2 {
       font-weight: 600;
-      color: #444;
-      border-bottom: 2px solid #ddd;
+      color: #ffffff;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.3);
       padding-bottom: 0.5rem;
       margin-bottom: 1rem;
     }
 
-    p {
-      margin-top: 1rem;
-      font-size: 1.2rem;
-      color: #555;
+    h1 {
+      font-size: 2rem;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    p, ul {
+      margin-bottom: 1rem;
+      color: #e0e0e0;
+    }
+
+    ul {
+      list-style-type: disc;
+      margin-left: 2rem;
+    }
+
+    ul li {
+      margin-top: 0.8rem;
+    }
+
+    .important {
+      background-color: rgba(231, 76, 60, 0.2);
+      border-left: 4px solid #e74c3c;
+      padding: 0.5rem 1rem;
+      margin: 1rem 0;
+    }
+
+    .contact {
+      background-color: rgba(52, 152, 219, 0.2);
+      border-left: 4px solid #3498db;
+      padding: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    /* Additional styles for the header */
+    #page-header {
+      background-color: rgba(0, 0, 0, 0.02);
+      backdrop-filter: blur(2px);
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
     }
   </style>
 </head>
 <body>
+    <header
+        id="page-header"
+        class="fixed top-0 z-20 flex w-full items-center justify-between border-b border-transparent px-7 py-3 bg-default"
+    >
+        <a class="flex items-center gap-2 hover:!text-default" href="/">
+            <h1 class="sr-only">Arknet</h1>
+            <Icon name="arknetAlogo" class="size-7" />
+            <Icon name="arknetnolog" class="hidden h-3 sm:block" />
+        </a>
+        
+        <div class="flex items-center gap-6">
+            <ThemeSwitcher />
+            <li class="list-none">
+                <SignedOut>
+                </SignedOut>
+                
+                <!-- <SignedIn>
+                    <div class="user-button-wrapper">
+                        <UserButton 
+                        appearance={{
+                            elements: {
+                            avatarBox: "h-7 w-7",
+                            card: "w-[400px] max-w-[85vw]", 
+                            },
+                            variables: {
+                            fontSize: "1.2",
+                            },
+                        }}
+                        showName={false}
+                        userProfileProps={{
+                            appearance: {
+                            elements: {
+                                rootBox: "w-full max-w-[800px] mx-auto",
+                                card: "shadow-none",
+                                navbar: "hidden",
+                            },
+                            variables: {
+                                fontSize: "1",
+                            },
+                            },
+                        }}
+                        />
+                    </div>
+                </SignedIn> -->
+            </li>
+        </div>
+    </header>
+
   <div class="container">
-    <h2>Cancellation Policy</h2>
-    <p>Cancellations can be made up to 24 hours before the pick-up time without any fee. No refunds will be given for deliveries that are cancelled less than 24 hours before the scheduled pick-up time.</p>
+    <h1>Cancellation Policy</h1>
+    
+    <h2>Standard Cancellations</h2>
+    <p>At Arknet Couriers, we understand that plans can change. Our cancellation policy is designed to be fair and transparent:</p>
+    <ul>
+      <li>Cancellations made 24 hours or more before the scheduled pick-up time are free of charge.</li>
+      <li>Cancellations made less than 24 hours before the scheduled pick-up time are subject to a cancellation fee of 50% of the delivery charge.</li>
+      <li>No refunds will be given for cancellations made after a driver has been dispatched.</li>
+    </ul>
+    
+    <h2>Late Cancellations and No-Shows</h2>
+    <p class="important">Important: Cancellations made after a driver has been dispatched or no-shows will be charged the full delivery fee.</p>
+    
+    <h2>Rescheduling</h2>
+    <p>We understand that sometimes you may need to reschedule rather than cancel:</p>
+    <ul>
+      <li>Rescheduling requests made 24 hours or more before the scheduled pick-up time are free of charge, subject to availability.</li>
+      <li>Rescheduling requests made less than 24 hours before the scheduled pick-up time may be subject to a rescheduling fee of 25% of the delivery charge.</li>
+    </ul>
+    
+    <h2>Refunds</h2>
+    <p>For eligible cancellations, refunds will be processed within 7-10 business days to the original payment method.</p>
+    
+    <h2>Repeated Cancellations</h2>
+    <p>Arknet Couriers reserves the right to refuse future bookings in cases of repeated cancellations or no-shows.</p>
+    
+    <div class="contact">
+      <h2>Need to Cancel or Reschedule?</h2>
+      <p>Please contact our customer service team as soon as possible:</p>
+      <ul>
+        <li>Email: cancellations@arknetcouriers.com</li>
+        <li>Phone: (555) 123-4567</li>
+      </ul>
+    </div>
   </div>
 </body>
 </html>
