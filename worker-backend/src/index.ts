@@ -18,6 +18,8 @@ interface QuoteData {
   shippingType: string;
   weight: number;
   datetime: string; 
+  email: string;
+  phone_number: string;
 }
 
 interface PostcodesIOResponse {
@@ -209,8 +211,8 @@ async function handleApiRequest(pathname: string, request: Request, env: Env): P
 
   return new Response('Not Found', { status: 404, headers });
 }
-
 async function handleCreateCheckoutSession(request: Request, env: Env, headers: HeadersInit): Promise<Response> {
+  console.log("in handle create checkout session")
   if (request.method !== 'POST') {
     return new Response('Method Not Allowed', { status: 405, headers });
   }
@@ -223,8 +225,8 @@ async function handleCreateCheckoutSession(request: Request, env: Env, headers: 
     const pendingResult = await env.MY_DB.prepare(
       `INSERT INTO pending_orders (
         user, pickup, destination, price, completed, serviceLevel, 
-        shippingType, weight, datetime, status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        shippingType, weight, datetime, status, email, phone_number
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .bind(
       data.user,
@@ -236,7 +238,9 @@ async function handleCreateCheckoutSession(request: Request, env: Env, headers: 
       data.shippingType,
       data.weight,
       data.datetime,
-      'pending'
+      'pending',
+      data.email,
+      data.phone_number,
     )
     .run();
 
@@ -271,6 +275,8 @@ async function handleCreateCheckoutSession(request: Request, env: Env, headers: 
         shippingType: data.shippingType,
         weight: data.weight.toString(),
         datetime: data.datetime,
+        email: data.email,
+        phone_number: data.phone_number
       },
     });
 
@@ -291,9 +297,7 @@ async function handleCreateCheckoutSession(request: Request, env: Env, headers: 
     );
   }
 }
-
 async function handleWebhook(request: Request, env: Env): Promise<Response> {
-  // Log detailed information for debugging
   console.log(`Webhook request method: ${request.method}`);
   console.log(`Webhook request URL: ${request.url}`);
   console.log(`Webhook request headers:`, [...request.headers]);
@@ -318,7 +322,6 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
   }
 
   try {
-    // Use constructEventAsync instead of constructEvent
     const event = await stripe.webhooks.constructEventAsync(
       body,
       signature,
@@ -331,20 +334,27 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
       const session = event.data.object as Stripe.Checkout.Session;
       const metadata = session.metadata;
 
+      console.log('Session metadata:', metadata); // Log the entire metadata object
+
       if (!metadata) {
         throw new Error('No metadata found in session');
       }
 
-      // Use batch() to execute statements as a transaction
+      // Log individual metadata fields
+      console.log('Email from metadata:', metadata.email);
+      console.log('Phone number from metadata:', metadata.phone_number);
+
       const statements = [];
 
       // Prepare the insert statement into orders
       const insertStatement = env.MY_DB.prepare(
         `INSERT INTO orders (
           user, pickup, destination, price, completed, serviceLevel, 
-          shippingType, weight, datetime, stripe_payment_intent_id
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      ).bind(
+          shippingType, weight, datetime, stripe_payment_intent_id, email, phone_number
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      );
+
+      const values = [
         metadata.user,
         metadata.pickup,
         metadata.destination,
@@ -354,10 +364,15 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
         metadata.shippingType,
         parseFloat(metadata.weight),
         metadata.datetime,
-        session.payment_intent as string
-      );
+        session.payment_intent as string,
+        metadata.email,
+        metadata.phone_number
+      ];
 
-      statements.push(insertStatement);
+      console.log('Values to be inserted:', values); // Log the values being inserted
+
+      const boundStatement = insertStatement.bind(...values);
+      statements.push(boundStatement);
 
       // Optionally prepare the delete statement to remove the pending order
       if (metadata.pending_order_id) {
@@ -375,20 +390,22 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
         throw new Error('Failed to insert confirmed order');
       }
 
+      console.log('Insert result:', insertResult); // Log the insert result
       console.log('Order successfully inserted and pending order deleted if applicable.');
     }
 
     return new Response(JSON.stringify({ received: true }), { status: 200 });
   } catch (error) {
     console.error('Webhook error:', error);
+    if (error instanceof Error) {
+      console.error('Error stack:', error.stack);
+    }
     return new Response(
       `Webhook Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
       { status: 400 }
     );
   }
 }
-
-
 
 async function handleCreatePaymentIntent(request: Request, env: Env): Promise<Response> {
   const headers = {
