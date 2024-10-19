@@ -19,7 +19,7 @@ interface QuoteData {
   weight: number;
   datetime: string; 
   email: string;
-  //phone_number: string;
+  // No need to include phone_number here since we'll collect it via Stripe
 }
 
 interface PostcodesIOResponse {
@@ -211,8 +211,9 @@ async function handleApiRequest(pathname: string, request: Request, env: Env): P
 
   return new Response('Not Found', { status: 404, headers });
 }
+
 async function handleCreateCheckoutSession(request: Request, env: Env, headers: HeadersInit): Promise<Response> {
-  console.log("in handle create checkout session")
+  console.log("in handle create checkout session");
   if (request.method !== 'POST') {
     return new Response('Method Not Allowed', { status: 405, headers });
   }
@@ -239,8 +240,7 @@ async function handleCreateCheckoutSession(request: Request, env: Env, headers: 
       data.weight,
       data.datetime,
       'pending',
-      data.email,
-      //data.phone_number,
+      data.email
     )
     .run();
 
@@ -264,6 +264,9 @@ async function handleCreateCheckoutSession(request: Request, env: Env, headers: 
       mode: 'payment',
       success_url: `${request.headers.get('Origin')}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${request.headers.get('Origin')}/quickquote`,
+      phone_number_collection: {
+        enabled: true,
+      },
       metadata: {
         pending_order_id: pendingOrderId?.toString(),
         user: data.user,
@@ -275,8 +278,7 @@ async function handleCreateCheckoutSession(request: Request, env: Env, headers: 
         shippingType: data.shippingType,
         weight: data.weight.toString(),
         datetime: data.datetime,
-        email: data.email,
-        //phone_number: data.phone_number
+        email: data.email
       },
     });
 
@@ -297,6 +299,7 @@ async function handleCreateCheckoutSession(request: Request, env: Env, headers: 
     );
   }
 }
+
 async function handleWebhook(request: Request, env: Env): Promise<Response> {
   console.log(`Webhook request method: ${request.method}`);
   console.log(`Webhook request URL: ${request.url}`);
@@ -342,7 +345,9 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
 
       // Log individual metadata fields
       console.log('Email from metadata:', metadata.email);
-      //console.log('Phone number from metadata:', metadata.phone_number);
+      console.log('Customer details:', session.customer_details);
+
+      const phoneNumber = session.customer_details?.phone || '';
 
       const statements = [];
 
@@ -350,8 +355,8 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
       const insertStatement = env.MY_DB.prepare(
         `INSERT INTO orders (
           user, pickup, destination, price, completed, serviceLevel, 
-          shippingType, weight, datetime, stripe_payment_intent_id, email
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          shippingType, weight, datetime, stripe_payment_intent_id, email, phone_number
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       );
 
       const values = [
@@ -366,7 +371,7 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
         metadata.datetime,
         session.payment_intent as string,
         metadata.email,
-        //metadata.phone_number
+        phoneNumber
       ];
 
       console.log('Values to be inserted:', values); // Log the values being inserted
@@ -416,7 +421,7 @@ async function handleCreatePaymentIntent(request: Request, env: Env): Promise<Re
   };
 
   try {
-    const stripe = new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' as Stripe.LatestApiVersion});
+    const stripe = new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' as Stripe.LatestApiVersion });
     const body = await request.json() as { price: number };
 
     if (typeof body.price !== 'number') {
