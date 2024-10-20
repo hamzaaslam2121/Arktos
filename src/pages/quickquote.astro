@@ -39,10 +39,13 @@ console.log("Current user ID:", userId);
     #page-header .nologo {
       @apply h-3;  /* Adjust this value to change the nologo size */
     }
-    /* Ensure Clerk components are visible */
-    clerk-signed-in, clerk-signed-out {
-      display: contents !important;
+    .sign-in-button {
+      font-size: 1.05rem !important;
     }
+    /* Ensure Clerk components are visible */
+    /* clerk-signed-in, clerk-signed-out {
+      display: contents !important;
+    } */
   </style>
 </head>
 <body class="bg-black">
@@ -515,5 +518,16 @@ console.log("Current user ID:", userId);
       }
   });
 
+</script>
+
+<script>
+  // Client-side script to ensure Clerk components are visible
+  document.addEventListener('DOMContentLoaded', (event) => {
+    const signedInElements = document.querySelectorAll('clerk-signed-in');
+    const signedOutElements = document.querySelectorAll('clerk-signed-out');
+    
+    signedInElements.forEach(el => el.removeAttribute('hidden'));
+    signedOutElements.forEach(el => el.removeAttribute('hidden'));
+  });
 </script>
 </body>
