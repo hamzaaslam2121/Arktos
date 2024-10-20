@@ -4,9 +4,15 @@ import ThemeSwitcher from "~/components/theme-switcher.astro";
 import type { NavItem } from "~/types";
 import { SignedIn, SignedOut, UserButton, SignInButton, SignIn } from "@clerk/astro/components";
 
+interface Props {
+  customClasses?: string;
+}
+
+const { customClasses = "" } = Astro.props;
+
 const navItems: Array<NavItem> = [
-  { title: "Why use Arknet?", url: "#features" },
-  { title: "Our Services", url: "#compatibility" },
+  { title: "Why use Arknet?", url: "/#features" },
+  { title: "Our Services", url: "/#compatibility" },
 ];
 
 const protectedNavItem: Array<NavItem> = [ 
@@ -16,12 +22,12 @@ const protectedNavItem: Array<NavItem> = [
 
 <header
   id="page-header"
-  class="absolute bottom-0 z-20 flex w-full items-center justify-between border-b border-transparent px-8 py-4 text-white"
+  class={`absolute bottom-0 z-20 flex w-full items-center justify-between border-b border-transparent px-8 py-4 text-white ${customClasses}`}
 >
-  <a class="flex items-center gap-3 hover:!text-default" href="#">
+  <a class="flex items-center gap-3 hover:!text-default" href="/">
     <h1 class="sr-only">Arknet</h1>
-    <Icon name="arknetAlogo" class="size-10" />
-    <Icon name="arknetnolog" class="hidden h-4 sm:block" />
+    <Icon name="arknetAlogo" class="size-10 logo" />
+    <Icon name="arknetnolog" class="hidden h-4 sm:block nologo" />
   </a>
   <div>
     <div class="flex items-center gap-6">

@@ -1,6 +1,9 @@
 ---
+import { SignedOut } from "@clerk/astro/components";
 import { Icon } from "astro-icon/components";
 import Starfield from "~/components/starfield.astro";
+import ThemeSwitcher from "~/components/theme-switcher.astro";
+import Header from "~/components/header.astro";
 
 // QuickQuotes.astro
 const auth = Astro.locals.auth();
@@ -14,9 +17,33 @@ console.log("Current user ID:", userId);
 ---
 <!-- Add viewport meta tag in your head section -->
 <head>
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Parcel Delivery Quick Quote</title>
+  <style is:global>
+    /* Add these styles to adjust the header */
+    #page-header {
+      @apply fixed top-0 bottom-auto bg-gray-800 bg-opacity-0;
+    }
+    #page-header a, #page-header button {
+      @apply text-sm;
+    }
+    /* Adjust user profile picture size */
+    #page-header .user-button-wrapper .cl-userButtonAvatarBox {
+      @apply h-7 w-7 !important;  /* Adjust this value as needed */
+    }
+        /* Custom styles for QuickQuote header */
+    #page-header .logo {
+      @apply size-7;  /* Adjust this value to change the logo size */
+    }
+    #page-header .nologo {
+      @apply h-3;  /* Adjust this value to change the nologo size */
+    }
+    
+  </style>
 </head>
-
+<body class="bg-black">
+  <Header customClasses="quickquote-header" />
 <section class="relative min-h-screen bg-black text-white flex items-center justify-center">
   <Starfield />
   
@@ -175,6 +202,9 @@ console.log("Current user ID:", userId);
     
     input, select, button {
       width: 100% !important;
+    }
+    :global(.quickquote-header) {
+        display: none !important;
     }
   }
 </style>
@@ -483,3 +513,4 @@ console.log("Current user ID:", userId);
   });
 
 </script>
+</body>
