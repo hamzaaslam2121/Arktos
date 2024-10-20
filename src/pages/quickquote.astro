@@ -39,7 +39,10 @@ console.log("Current user ID:", userId);
     #page-header .nologo {
       @apply h-3;  /* Adjust this value to change the nologo size */
     }
-    
+    /* Ensure Clerk components are visible */
+    clerk-signed-in, clerk-signed-out {
+      display: contents !important;
+    }
   </style>
 </head>
 <body class="bg-black">
