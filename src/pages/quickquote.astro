@@ -1,5 +1,5 @@
 ---
-import { SignedOut } from "@clerk/astro/components";
+import { SignedIn, SignedOut } from "@clerk/astro/components";
 import { Icon } from "astro-icon/components";
 import Starfield from "~/components/starfield.astro";
 import ThemeSwitcher from "~/components/theme-switcher.astro";
@@ -42,8 +42,8 @@ console.log("Current user ID:", userId);
     .sign-in-button {
       font-size: 1.05rem !important;
     }
-    Ensure Clerk components are visible 
-    clerk-signed-in, clerk-signed-out {
+    /* Ensure Clerk components are visible */
+    clerk-signed-in {
       display: contents !important;
     }
   </style>
@@ -518,16 +518,5 @@ console.log("Current user ID:", userId);
       }
   });
 
-</script>
-
-<script>
-  // Client-side script to ensure Clerk components are visible
-  document.addEventListener('DOMContentLoaded', (event) => {
-    const signedInElements = document.querySelectorAll('clerk-signed-in');
-    const signedOutElements = document.querySelectorAll('clerk-signed-out');
-    
-    signedInElements.forEach(el => el.removeAttribute('hidden'));
-    signedOutElements.forEach(el => el.removeAttribute('hidden'));
-  });
 </script>
 </body>
