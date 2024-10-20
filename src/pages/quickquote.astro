@@ -256,14 +256,16 @@ console.log("Current user ID:", userId);
   @media (max-width: 768px) {
     .container {
       max-width: 100% !important;
-      padding: 0.5rem !important;
+      padding-top: 4.1rem !important;
+      padding-bottom: 1rem !important;
+      padding-left: 1rem !important;
+      padding-right: 1rem !important;
     }
-    
+    #page-header {
+      backdrop-filter: blur(2px) !important;
+    }
     input, select, button {
       width: 100% !important;
-    }
-    :global(.quickquote-header) {
-        display: none !important;
     }
   }
 </style>
