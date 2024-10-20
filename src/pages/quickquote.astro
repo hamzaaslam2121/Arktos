@@ -4,10 +4,16 @@ import { Icon } from "astro-icon/components";
 import Starfield from "~/components/starfield.astro";
 import ThemeSwitcher from "~/components/theme-switcher.astro";
 import Header from "~/components/header.astro";
+import {SignInButton, UserButton } from "@clerk/astro/components";
+import type { NavItem } from "~/types";
 
 // QuickQuotes.astro
 const auth = Astro.locals.auth();
 const userId = auth.userId;
+const navItems: Array<NavItem> = [
+  { title: "Why use Arknet?", url: "/#features" },
+  { title: "Our Services", url: "/#compatibility" },
+];
 
 console.log("Current user ID:", userId);
 
@@ -42,14 +48,61 @@ console.log("Current user ID:", userId);
     .sign-in-button {
       font-size: 1.05rem !important;
     }
+    
     /* Ensure Clerk components are visible */
-    clerk-signed-in {
+    /* clerk-signed-in {
       display: contents !important;
-    }
+    } */
   </style>
 </head>
-<body class="bg-black">
-  <Header customClasses="quickquote-header" />
+<body class="bg-white">
+  
+  <header
+        id="page-header"
+        class="fixed top-0 z-50 flex w-full items-center justify-between border-b border-transparent px-8 py-4 bg-default"
+    >
+        <a class="flex items-center gap-3 hover:!text-default" href="/">
+          <h1 class="sr-only">Arknet</h1>
+          <Icon name="arknetAlogo" class="text-white  size-7" />
+          <Icon name="arknetnolog" class="hidden h-3 sm:block text-white" />
+      </a>
+        
+        <div class="flex items-center gap-6">
+          <nav class="hidden sm:block">
+            <ul class="flex items-center gap-6">
+              {
+                navItems.map(({ title, url }) => ( 
+                  <li>
+                    <a class="text-lg font-normal py-2 px-3 text-white" href={url}>
+                      {title}
+                    </a>
+                  </li>
+                ))
+              }
+                <SignedIn>
+                    <li>
+                        <a 
+                            class="text-lg font-normal py-2 px-3 text-white" 
+                            href="/orders/"
+                        >
+                            Your Orders
+                        </a>
+                    </li>
+                </SignedIn>
+            </ul>
+        </nav>
+              <SignedOut>
+                <SignInButton mode="redirect" class="sign-in-button text-white" style="font-size: 1.5rem;"/>
+              </SignedOut>
+              <SignedIn>
+                <div class="user-button-wrapper">
+                  <UserButton                     
+                  />
+                </div>
+              </SignedIn>
+        </div>
+        
+    </header>
 <section class="relative min-h-screen bg-black text-white flex items-center justify-center">
   <Starfield />
   
