@@ -31,7 +31,7 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   mod
 ));
 
-// .wrangler/tmp/bundle-U99d6P/checked-fetch.js
+// .wrangler/tmp/bundle-5tUhwx/checked-fetch.js
 function checkURL(request, init) {
   const url = request instanceof URL ? request : new URL(
     (typeof request === "string" ? new Request(request, init) : request).url
@@ -49,7 +49,7 @@ function checkURL(request, init) {
 }
 var urls;
 var init_checked_fetch = __esm({
-  ".wrangler/tmp/bundle-U99d6P/checked-fetch.js"() {
+  ".wrangler/tmp/bundle-5tUhwx/checked-fetch.js"() {
     "use strict";
     urls = /* @__PURE__ */ new Set();
     globalThis.fetch = new Proxy(globalThis.fetch, {
@@ -2290,11 +2290,11 @@ var require_lib = __commonJS({
   }
 });
 
-// .wrangler/tmp/bundle-U99d6P/middleware-loader.entry.ts
+// .wrangler/tmp/bundle-5tUhwx/middleware-loader.entry.ts
 init_checked_fetch();
 init_modules_watch_stub();
 
-// .wrangler/tmp/bundle-U99d6P/middleware-insertion-facade.js
+// .wrangler/tmp/bundle-5tUhwx/middleware-insertion-facade.js
 init_checked_fetch();
 init_modules_watch_stub();
 
@@ -7581,21 +7581,24 @@ async function handleCreateCheckoutSession(request, env, headers) {
     const data = await request.json();
     const pendingResult = await env.MY_DB.prepare(
       `INSERT INTO pending_orders (
-        user, pickup, destination, price, completed, serviceLevel, 
-        shippingType, weight, datetime, status, email
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        user, pickup, destination, price, completed, shippingType, 
+        weight, datetime, status, email, pickup_date, time_slot
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).bind(
       data.user,
       data.pickup,
       data.destination,
       data.price,
       data.completed,
-      data.serviceLevel,
       data.shippingType,
       data.weight,
       data.datetime,
       "pending",
-      data.email
+      data.email,
+      data.deliveryDate,
+      // Added
+      data.deliveryTime
+      // Added
     ).run();
     const pendingOrderId = pendingResult.meta?.last_row_id;
     const session = await stripe.checkout.sessions.create({
@@ -7626,11 +7629,14 @@ async function handleCreateCheckoutSession(request, env, headers) {
         destination: data.destination,
         price: data.price.toString(),
         completed: data.completed.toString(),
-        serviceLevel: data.serviceLevel,
         shippingType: data.shippingType,
         weight: data.weight.toString(),
         datetime: data.datetime,
-        email: data.email
+        email: data.email,
+        pickup_date: data.deliveryDate,
+        // Added
+        time_slot: data.deliveryTime
+        // Added
       }
     });
     return new Response(JSON.stringify({ sessionId: session.id, url: session.url }), {
@@ -7690,9 +7696,9 @@ async function handleWebhook(request, env) {
       const statements = [];
       const insertStatement = env.MY_DB.prepare(
         `INSERT INTO orders (
-          user, pickup, destination, price, completed, serviceLevel, 
-          shippingType, weight, datetime, stripe_payment_intent_id, email, phone_number
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          user, pickup, destination, price, completed, shippingType, 
+          weight, datetime, stripe_payment_intent_id, email, phone_number, pickup_date, time_slot
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       );
       const values = [
         metadata.user,
@@ -7700,13 +7706,16 @@ async function handleWebhook(request, env) {
         metadata.destination,
         parseFloat(metadata.price),
         parseInt(metadata.completed),
-        metadata.serviceLevel,
         metadata.shippingType,
         parseFloat(metadata.weight),
         metadata.datetime,
         session.payment_intent,
         metadata.email,
-        phoneNumber
+        phoneNumber,
+        metadata.pickup_date,
+        // Added
+        metadata.time_slot
+        // Added
       ];
       console.log("Values to be inserted:", values);
       const boundStatement = insertStatement.bind(...values);
@@ -7796,7 +7805,7 @@ var drainBody = async (request, env, _ctx, middlewareCtx) => {
 };
 var middleware_ensure_req_body_drained_default = drainBody;
 
-// .wrangler/tmp/bundle-U99d6P/middleware-insertion-facade.js
+// .wrangler/tmp/bundle-5tUhwx/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default
 ];
@@ -7826,7 +7835,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
   ]);
 }
 
-// .wrangler/tmp/bundle-U99d6P/middleware-loader.entry.ts
+// .wrangler/tmp/bundle-5tUhwx/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;
