@@ -331,7 +331,7 @@ console.log("Current user ID:", userId);
     const priceInfo = document.getElementById('price-info') as HTMLDivElement;
     const priceElement = document.getElementById('price-value') as HTMLSpanElement;
     const weightInput = document.getElementById('weight') as HTMLInputElement;
-    const serviceLevelSelect = document.getElementById('serviceLevel') as HTMLSelectElement;
+    //const serviceLevelSelect = document.getElementById('serviceLevel') as HTMLSelectElement;
     const shippingTypeSelect = document.getElementById('shippingType') as HTMLSelectElement;
     const quoteButton = document.getElementById('quoteButton') as HTMLButtonElement;
     //const phone_numberInput = document.getElementById('phone_number') as HTMLInputElement;
@@ -577,7 +577,7 @@ console.log("Current user ID:", userId);
 
     // Remove distance calculation from address input listeners
     weightInput.addEventListener('input', updatePrice);
-    serviceLevelSelect.addEventListener('change', updatePrice);
+    //serviceLevelSelect.addEventListener('change', updatePrice);
     shippingTypeSelect.addEventListener('change', updatePrice);
 
     // Hide suggestions when clicking outside
@@ -630,7 +630,6 @@ console.log("Current user ID:", userId);
         price: parseFloat(priceElement.textContent || '0'),
         distance: calculatedDistance,
         completed: 0,
-        serviceLevel: serviceLevelSelect.value,
         shippingType: shippingTypeSelect.value,
         weight: parseFloat(weightInput.value) || 0,
         datetime: datetime,
