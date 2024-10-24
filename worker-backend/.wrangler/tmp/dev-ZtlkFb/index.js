@@ -7581,21 +7581,24 @@ async function handleCreateCheckoutSession(request, env, headers) {
     const data = await request.json();
     const pendingResult = await env.MY_DB.prepare(
       `INSERT INTO pending_orders (
-        user, pickup, destination, price, completed, serviceLevel, 
-        shippingType, weight, datetime, status, email
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        user, pickup, destination, price, completed, shippingType, 
+        weight, datetime, status, email, pickup_date, time_slot
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).bind(
       data.user,
       data.pickup,
       data.destination,
       data.price,
       data.completed,
-      data.serviceLevel,
       data.shippingType,
       data.weight,
       data.datetime,
       "pending",
-      data.email
+      data.email,
+      data.deliveryDate,
+      // Added
+      data.deliveryTime
+      // Added
     ).run();
     const pendingOrderId = pendingResult.meta?.last_row_id;
     const session = await stripe.checkout.sessions.create({
@@ -7626,11 +7629,14 @@ async function handleCreateCheckoutSession(request, env, headers) {
         destination: data.destination,
         price: data.price.toString(),
         completed: data.completed.toString(),
-        serviceLevel: data.serviceLevel,
         shippingType: data.shippingType,
         weight: data.weight.toString(),
         datetime: data.datetime,
-        email: data.email
+        email: data.email,
+        pickup_date: data.deliveryDate,
+        // Added
+        time_slot: data.deliveryTime
+        // Added
       }
     });
     return new Response(JSON.stringify({ sessionId: session.id, url: session.url }), {
@@ -7690,9 +7696,9 @@ async function handleWebhook(request, env) {
       const statements = [];
       const insertStatement = env.MY_DB.prepare(
         `INSERT INTO orders (
-          user, pickup, destination, price, completed, serviceLevel, 
-          shippingType, weight, datetime, stripe_payment_intent_id, email, phone_number
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          user, pickup, destination, price, completed, shippingType, 
+          weight, datetime, stripe_payment_intent_id, email, phone_number, pickup_date, time_slot
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       );
       const values = [
         metadata.user,
@@ -7700,13 +7706,16 @@ async function handleWebhook(request, env) {
         metadata.destination,
         parseFloat(metadata.price),
         parseInt(metadata.completed),
-        metadata.serviceLevel,
         metadata.shippingType,
         parseFloat(metadata.weight),
         metadata.datetime,
         session.payment_intent,
         metadata.email,
-        phoneNumber
+        phoneNumber,
+        metadata.pickup_date,
+        // Added
+        metadata.time_slot
+        // Added
       ];
       console.log("Values to be inserted:", values);
       const boundStatement = insertStatement.bind(...values);

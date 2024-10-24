@@ -140,7 +140,7 @@ console.log("Current user ID:", userId);
               />
             </div>
           </div>
-
+      
           <!-- Delivery Address Section -->
           <div class="space-y-3 md:space-y-4 w-full">
             <div class="relative">
@@ -167,17 +167,8 @@ console.log("Current user ID:", userId);
             </div>
           </div>
         </div>
-        <!-- <div class="w-full">
-          <label class="block text-sm font-medium mb-1" for="phone_number">Phone Number:</label>
-          <input
-            type="tel"
-            id="phone_number"
-            placeholder="Enter phone number"
-            class="w-full px-3 py-3 md:py-2 text-base md:text-sm bg-gray-800 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-            required
-          />
-        </div> -->
-        <!-- Single column layout for additional fields -->
+      
+        <!-- Additional Fields Section -->
         <div class="flex flex-col md:grid md:grid-cols-3 gap-4 md:gap-6">
           <div class="w-full">
             <label class="block text-sm font-medium mb-1" for="weight">Weight (kg):</label>
@@ -216,21 +207,22 @@ console.log("Current user ID:", userId);
             </select>
           </div>
         </div>
+      
+        <!-- Shipping Type Section -->
+        <div class="w-full">
+          <label class="block text-sm font-medium mb-1" for="shippingType">Shipping Type:</label>
+          <select 
+            id="shippingType" 
+            class="w-full px-3 py-3 md:py-2 text-base md:text-sm bg-gray-800 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+            required
+          >
+            <option value="parcel">Parcel</option>
+            <option value="document">Document</option>
+            <option value="pallet">Pallet</option>
+          </select>
         </div>
-          <div class="w-full">
-            <label class="block text-sm font-medium mb-1" for="shippingType">Shipping Type:</label>
-            <select 
-              id="shippingType" 
-              class="w-full px-3 py-3 md:py-2 text-base md:text-sm bg-gray-800 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-              required
-            >
-              <option value="parcel">Parcel</option>
-              <option value="document">Document</option>
-              <option value="pallet">Pallet</option>
-            </select>
-          </div>
-        </div>
-
+      
+        <!-- Info Sections -->
         <div id="distance-info" class="mt-4 p-3 bg-gray-800 bg-opacity-10 rounded-md hidden">
           <p class="text-sm font-medium">Estimated driving distance: <span id="distance-value"></span></p>
         </div>
@@ -239,6 +231,7 @@ console.log("Current user ID:", userId);
           <p class="text-xl md:text-lg font-bold">Price: &pound;<span id="price-value">N/A</span></p>
         </div>
         
+        <!-- Submit Button -->
         <div class="flex justify-center md:justify-end items-center pt-4">
           <button 
             type="submit" 

@@ -14,12 +14,12 @@ interface QuoteData {
   destination: string;
   price: number;
   completed: number;
-  serviceLevel: string;
   shippingType: string;
   weight: number;
   datetime: string; 
   email: string;
-  // No need to include phone_number here since we'll collect it via Stripe
+  deliveryDate: string;  // Added
+  deliveryTime: string;    // Added
 }
 
 interface PostcodesIOResponse {
@@ -217,17 +217,17 @@ async function handleCreateCheckoutSession(request: Request, env: Env, headers: 
   if (request.method !== 'POST') {
     return new Response('Method Not Allowed', { status: 405, headers });
   }
-
+ 
   try {
     const stripe = new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' as Stripe.LatestApiVersion });
     const data = await request.json() as QuoteData;
-
+ 
     // Create a temporary pending order record
     const pendingResult = await env.MY_DB.prepare(
       `INSERT INTO pending_orders (
-        user, pickup, destination, price, completed, serviceLevel, 
-        shippingType, weight, datetime, status, email
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        user, pickup, destination, price, completed, shippingType, 
+        weight, datetime, status, email, pickup_date, time_slot
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .bind(
       data.user,
@@ -235,17 +235,18 @@ async function handleCreateCheckoutSession(request: Request, env: Env, headers: 
       data.destination,
       data.price,
       data.completed,
-      data.serviceLevel,
       data.shippingType,
       data.weight,
       data.datetime,
       'pending',
-      data.email
+      data.email,
+      data.deliveryDate,   // Added
+      data.deliveryTime      // Added
     )
     .run();
-
+ 
     const pendingOrderId = pendingResult.meta?.last_row_id;
-
+ 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -274,14 +275,15 @@ async function handleCreateCheckoutSession(request: Request, env: Env, headers: 
         destination: data.destination,
         price: data.price.toString(),
         completed: data.completed.toString(),
-        serviceLevel: data.serviceLevel,
         shippingType: data.shippingType,
         weight: data.weight.toString(),
         datetime: data.datetime,
-        email: data.email
+        email: data.email,
+        pickup_date: data.deliveryDate,  // Added
+        time_slot: data.deliveryTime       // Added
       },
     });
-
+ 
     return new Response(JSON.stringify({ sessionId: session.id, url: session.url }), {
       headers: {
         ...headers,
@@ -304,7 +306,7 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
   console.log(`Webhook request method: ${request.method}`);
   console.log(`Webhook request URL: ${request.url}`);
   console.log(`Webhook request headers:`, [...request.headers]);
-
+ 
   if (request.method !== 'POST') {
     console.warn(`Unexpected HTTP method: ${request.method}`);
     return new Response('Method Not Allowed', {
@@ -312,93 +314,94 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
       headers: { 'Allow': 'POST' },
     });
   }
-
+ 
   const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
     apiVersion: '2024-09-30.acacia',
   });
   const signature = request.headers.get('stripe-signature');
   const body = await request.text();
-
+ 
   if (!signature || !env.STRIPE_WEBHOOK_SECRET) {
     console.error('Invalid webhook request: Missing signature or webhook secret');
     return new Response('Invalid webhook request', { status: 400 });
   }
-
+ 
   try {
     const event = await stripe.webhooks.constructEventAsync(
       body,
       signature,
       env.STRIPE_WEBHOOK_SECRET
     );
-
+ 
     console.log(`Webhook event type: ${event.type}`);
-
+ 
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object as Stripe.Checkout.Session;
       const metadata = session.metadata;
-
+ 
       console.log('Session metadata:', metadata); // Log the entire metadata object
-
+ 
       if (!metadata) {
         throw new Error('No metadata found in session');
       }
-
+ 
       // Log individual metadata fields
       console.log('Email from metadata:', metadata.email);
       console.log('Customer details:', session.customer_details);
-
+ 
       const phoneNumber = session.customer_details?.phone || '';
-
+ 
       const statements = [];
-
+ 
       // Prepare the insert statement into orders
       const insertStatement = env.MY_DB.prepare(
         `INSERT INTO orders (
-          user, pickup, destination, price, completed, serviceLevel, 
-          shippingType, weight, datetime, stripe_payment_intent_id, email, phone_number
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          user, pickup, destination, price, completed, shippingType, 
+          weight, datetime, stripe_payment_intent_id, email, phone_number, pickup_date, time_slot
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       );
-
+ 
       const values = [
         metadata.user,
         metadata.pickup,
         metadata.destination,
         parseFloat(metadata.price),
         parseInt(metadata.completed),
-        metadata.serviceLevel,
         metadata.shippingType,
         parseFloat(metadata.weight),
         metadata.datetime,
         session.payment_intent as string,
         metadata.email,
-        phoneNumber
+        phoneNumber,
+        metadata.pickup_date,  // Added
+        metadata.time_slot      // Added
       ];
-
+ 
       console.log('Values to be inserted:', values); // Log the values being inserted
-
+ 
       const boundStatement = insertStatement.bind(...values);
       statements.push(boundStatement);
-
+ 
       // Optionally prepare the delete statement to remove the pending order
       if (metadata.pending_order_id) {
         const deleteStatement = env.MY_DB.prepare('DELETE FROM pending_orders WHERE id = ?')
           .bind(metadata.pending_order_id);
         statements.push(deleteStatement);
       }
-
+ 
       // Execute all statements as a single transaction
       const results = await env.MY_DB.batch(statements);
-
+ 
       // Check if the insert was successful
       const insertResult = results[0];
       if (!insertResult.meta?.changes) {
         throw new Error('Failed to insert confirmed order');
       }
-
+ 
       console.log('Insert result:', insertResult); // Log the insert result
       console.log('Order successfully inserted and pending order deleted if applicable.');
     }
-
+ 
     return new Response(JSON.stringify({ received: true }), { status: 200 });
   } catch (error) {
     console.error('Webhook error:', error);
