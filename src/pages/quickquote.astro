@@ -460,59 +460,87 @@ console.log("Current user ID:", userId);
       const shippingType = shippingTypeSelect.value;
       const selectedDate = new Date(deliveryDateInput.value);
       const now = new Date();
+      
+      // Calculate days difference
+      const diffTime = selectedDate.getTime() - now.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       const isToday = selectedDate.toDateString() === now.toDateString();
 
-      // Base price calculation
-      let basePrice = 4.95;
+      // Lower base price for local deliveries
+      let basePrice = 8.00;
 
-      // Distance pricing
-      if (distance <= 50) {
-          basePrice += 2.50;
+      // Adjusted distance-based pricing
+      if (distance <= 5) {
+          basePrice += 3.00;      // Very local delivery
+      } else if (distance <= 20) {
+          basePrice += 8.00;      // City-wide
+      } else if (distance <= 50) {
+          basePrice += 25.00;     // Regional
       } else if (distance <= 100) {
-          basePrice += 3.95;
+          basePrice += 65.00;     // Extended regional
       } else if (distance <= 200) {
-          basePrice += 5.95;
+          basePrice += 140.00;    // Inter-regional
+      } else if (distance <= 400) {
+          basePrice += 250.00;    // National
       } else {
-          basePrice += 7.95;
+          // Long distance national
+          basePrice += 250.00 + ((distance - 400) * 0.75); 
       }
 
-      // Weight calculations
+      // Adjusted weight calculations for more reasonable local delivery
       if (weight <= 1) {
-          basePrice += 0;
-      } else if (weight <= 2) {
-          basePrice += 1.50;
+          basePrice += 2.00;
       } else if (weight <= 5) {
-          basePrice += 3.50;
+          basePrice += 5.00;
       } else if (weight <= 10) {
-          basePrice += 5.95;
+          basePrice += 15.00;
       } else if (weight <= 20) {
-          basePrice += 8.95;
+          basePrice += 35.00;
+      } else if (weight <= 30) {
+          basePrice += 65.00;
       } else {
-          basePrice += 8.95 + (Math.ceil((weight - 20) / 5) * 2.50);
+          // Heavy items
+          basePrice += 65.00 + (Math.ceil((weight - 30) / 5) * 20.00);
       }
 
-      // Same-day delivery premium
+      // New delivery date-based pricing
       if (isToday) {
-          basePrice *= 1.5; // 50% premium for same-day delivery
+          if (distance <= 20) {
+              basePrice *= 1.75; // 75% premium for local same-day
+          } else {
+              basePrice *= 2.0;  // 100% premium for longer distance same-day
+          }
+      } else if (diffDays === 1) {
+          if (distance <= 20) {
+              basePrice *= 1.4;  // 40% premium for local next-day
+          } else {
+              basePrice *= 1.6;  // 60% premium for longer distance next-day
+          }
+      } else if (diffDays <= 7) {
+          // Price reduces gradually from day 2 to day 7
+          // Day 2: 30% premium, reducing to 0% by day 7
+          const premium = Math.max(0, 0.3 - ((diffDays - 2) * 0.05));
+          basePrice *= (1 + premium);
       }
+      // After 7 days, no date-based premium applies
 
-      // Time slot adjustments
+      // Adjusted time slot premiums
       if (deliveryTime === 'morning') {
-          basePrice *= 1.2; // 20% premium for morning delivery
+          basePrice *= 1.25;  // 25% premium for morning delivery
       } else if (deliveryTime === 'evening') {
-          basePrice *= 1.15; // 15% premium for evening delivery
+          basePrice *= 1.15;  // 15% premium for evening delivery
       }
 
       // Shipping type adjustments
       if (shippingType === 'document') {
-          basePrice *= 0.9;
+          basePrice *= 0.7;  // 30% discount for documents
       } else if (shippingType === 'pallet') {
-          basePrice = Math.max(basePrice, 35);
-          basePrice *= 1.8;
+          basePrice = Math.max(basePrice, 150);
+          basePrice *= 2.5;
       }
 
       return basePrice.toFixed(2);
-    }
+  }
 
     function updatePrice() {
       if (pickupPostcodeInput.value && destinationPostcodeInput.value && weightInput.value && calculatedDistance > 0) {
