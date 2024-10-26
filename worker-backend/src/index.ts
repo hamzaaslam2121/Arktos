@@ -371,7 +371,7 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
       const session = event.data.object as Stripe.Checkout.Session;
       const metadata = session.metadata;
 
-      console.log('Session metadata:', metadata); // Log the entire metadata object
+      console.log('Session metadata:', metadata);
 
       if (!metadata) {
         throw new Error('No metadata found in session');
@@ -381,7 +381,6 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
 
       const statements = [];
 
-      // Prepare the insert statement into orders
       const insertStatement = env.MY_DB.prepare(
         `INSERT INTO orders (
           user, pickup, destination, pickup_postcode, destination_postcode, price, completed, shippingType, 
@@ -393,8 +392,8 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
         metadata.user,
         metadata.pickup,
         metadata.destination,
-        metadata.pickup_postcode,       // New field
-        metadata.destination_postcode,   // New field
+        metadata.pickup_postcode,
+        metadata.destination_postcode,
         parseFloat(metadata.price),
         parseInt(metadata.completed),
         metadata.shippingType,
@@ -410,38 +409,129 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
       const boundStatement = insertStatement.bind(...values);
       statements.push(boundStatement);
 
-      // Optionally prepare the delete statement to remove the pending order
       if (metadata.pending_order_id) {
         const deleteStatement = env.MY_DB.prepare('DELETE FROM pending_orders WHERE id = ?')
           .bind(metadata.pending_order_id);
         statements.push(deleteStatement);
       }
 
-      // Execute all statements as a single transaction
       const results = await env.MY_DB.batch(statements);
 
-      // Check if the insert was successful
       const insertResult = results[0];
       if (!insertResult.meta?.changes) {
         throw new Error('Failed to insert confirmed order');
       }
 
-      // Send email with metadata details once the payment is confirmed
+      // Improved email formatting with HTML
       const emailContent = `
-        Order confirmed with the following details:
-        User: ${metadata.user}
-        Pickup: ${metadata.pickup}
-        Pickup Postcode: ${metadata.pickup_postcode}       
-        Destination: ${metadata.destination}
-        Destination Postcode: ${metadata.destination_postcode} 
-        Price: £${metadata.price}
-        Shipping Type: ${metadata.shippingType}
-        Weight: ${metadata.weight}kg
-        Date and Time: ${metadata.datetime}
-        Delivery Date: ${metadata.pickup_date}
-        Delivery Time: ${metadata.time_slot}
-        Customer Email: ${metadata.email}
-        Customer Phone: ${phoneNumber}
+        <html>
+        <head>
+          <style>
+            table {
+              border-collapse: collapse;
+              width: 100%;
+              max-width: 600px;
+              margin: 20px 0;
+            }
+            th, td {
+              padding: 12px;
+              text-align: left;
+              border-bottom: 1px solid #ddd;
+            }
+            th {
+              background-color: #f5f5f5;
+              font-weight: bold;
+            }
+            .order-header {
+              background-color: #4a90e2;
+              color: white;
+              padding: 20px;
+              text-align: center;
+              margin-bottom: 20px;
+            }
+            .section-header {
+              background-color: #f8f9fa;
+              font-weight: bold;
+              padding: 10px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="order-header">
+            <h2>New Order Confirmation</h2>
+          </div>
+          
+          <table>
+            <tr>
+              <th colspan="2" class="section-header">Customer Information</th>
+            </tr>
+            <tr>
+              <th>Customer Name</th>
+              <td>${metadata.user}</td>
+            </tr>
+            <tr>
+              <th>Email</th>
+              <td>${metadata.email}</td>
+            </tr>
+            <tr>
+              <th>Phone</th>
+              <td>${phoneNumber}</td>
+            </tr>
+
+            <tr>
+              <th colspan="2" class="section-header">Delivery Details</th>
+            </tr>
+            <tr>
+              <th>Pickup Address</th>
+              <td>${metadata.pickup}</td>
+            </tr>
+            <tr>
+              <th>Pickup Postcode</th>
+              <td>${metadata.pickup_postcode}</td>
+            </tr>
+            <tr>
+              <th>Destination Address</th>
+              <td>${metadata.destination}</td>
+            </tr>
+            <tr>
+              <th>Destination Postcode</th>
+              <td>${metadata.destination_postcode}</td>
+            </tr>
+
+            <tr>
+              <th colspan="2" class="section-header">Shipping Information</th>
+            </tr>
+            <tr>
+              <th>Shipping Type</th>
+              <td>${metadata.shippingType}</td>
+            </tr>
+            <tr>
+              <th>Weight</th>
+              <td>${metadata.weight}kg</td>
+            </tr>
+            <tr>
+              <th>Delivery Date</th>
+              <td>${metadata.pickup_date}</td>
+            </tr>
+            <tr>
+              <th>Time Slot</th>
+              <td>${metadata.time_slot}</td>
+            </tr>
+
+            <tr>
+              <th colspan="2" class="section-header">Order Summary</th>
+            </tr>
+            <tr>
+              <th>Order Date & Time</th>
+              <td>${metadata.datetime}</td>
+            </tr>
+            <tr>
+              <th>Total Price</th>
+              <td>£${metadata.price}</td>
+            </tr>
+          </table>
+        </body>
+        </html>
       `;
       
       await sendEmail('arknetcouriers@outlook.com', 'New Order Confirmation', emailContent, env);
@@ -449,14 +539,12 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
       console.log('Order successfully inserted and pending order deleted if applicable.');
     }
 
-    // Handle payment_intent.succeeded event to ensure metadata appears in Payment Intent
     if (event.type === 'payment_intent.succeeded') {
       const paymentIntent = event.data.object as Stripe.PaymentIntent;
 
-      // Make sure metadata persists on the Payment Intent
       await stripe.paymentIntents.update(paymentIntent.id, {
         metadata: {
-          ...paymentIntent.metadata,  // Preserve any existing metadata
+          ...paymentIntent.metadata,
         },
       });
 
