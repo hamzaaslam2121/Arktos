@@ -431,9 +431,9 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
         Order confirmed with the following details:
         User: ${metadata.user}
         Pickup: ${metadata.pickup}
-        Pickup Postcode: ${metadata.pickup_postcode}       // Add postcode to email
+        Pickup Postcode: ${metadata.pickup_postcode}       
         Destination: ${metadata.destination}
-        Destination Postcode: ${metadata.destination_postcode} // Add postcode to email
+        Destination Postcode: ${metadata.destination_postcode} 
         Price: £${metadata.price}
         Shipping Type: ${metadata.shippingType}
         Weight: ${metadata.weight}kg
