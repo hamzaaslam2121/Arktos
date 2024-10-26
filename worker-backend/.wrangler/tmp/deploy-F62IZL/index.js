@@ -7183,7 +7183,7 @@ async function sendEmail(to, subject, text, env) {
     },
     body: JSON.stringify({
       personalizations: [{ to: [{ email: to }] }],
-      from: { email: "arknetcouriers@outlook.co.uk" },
+      from: { email: "arknetcouriers@outlook.com" },
       subject,
       content: [{ type: "text/plain", value: text }]
     })
