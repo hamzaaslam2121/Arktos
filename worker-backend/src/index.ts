@@ -330,7 +330,7 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
   console.log(`Webhook request method: ${request.method}`);
   console.log(`Webhook request URL: ${request.url}`);
   console.log(`Webhook request headers:`, [...request.headers]);
- 
+
   if (request.method !== 'POST') {
     console.warn(`Unexpected HTTP method: ${request.method}`);
     return new Response('Method Not Allowed', {
@@ -338,94 +338,63 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
       headers: { 'Allow': 'POST' },
     });
   }
- 
+
   const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
     apiVersion: '2024-09-30.acacia',
   });
   const signature = request.headers.get('stripe-signature');
   const body = await request.text();
- 
+
   if (!signature || !env.STRIPE_WEBHOOK_SECRET) {
     console.error('Invalid webhook request: Missing signature or webhook secret');
     return new Response('Invalid webhook request', { status: 400 });
   }
- 
+
   try {
     const event = await stripe.webhooks.constructEventAsync(
       body,
       signature,
       env.STRIPE_WEBHOOK_SECRET
     );
- 
+
     console.log(`Webhook event type: ${event.type}`);
- 
+
+    // Handle checkout.session.completed event
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object as Stripe.Checkout.Session;
       const metadata = session.metadata;
- 
-      console.log('Session metadata:', metadata); // Log the entire metadata object
- 
-      if (!metadata) {
-        throw new Error('No metadata found in session');
+      const paymentIntentId = session.payment_intent as string;
+
+      if (paymentIntentId) {
+        // Add metadata to the Payment Intent
+        await stripe.paymentIntents.update(paymentIntentId, {
+          metadata: {
+            ...metadata,  // Copy all metadata from the session to the payment intent
+          },
+        });
       }
- 
-      // Log individual metadata fields
-      console.log('Email from metadata:', metadata.email);
-      console.log('Customer details:', session.customer_details);
- 
-      const phoneNumber = session.customer_details?.phone || '';
- 
-      const statements = [];
- 
-      // Prepare the insert statement into orders
-      const insertStatement = env.MY_DB.prepare(
-        `INSERT INTO orders (
-          user, pickup, destination, price, completed, shippingType, 
-          weight, datetime, stripe_payment_intent_id, email, phone_number, pickup_date, time_slot
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      );
- 
-      const values = [
-        metadata.user,
-        metadata.pickup,
-        metadata.destination,
-        parseFloat(metadata.price),
-        parseInt(metadata.completed),
-        metadata.shippingType,
-        parseFloat(metadata.weight),
-        metadata.datetime,
-        session.payment_intent as string,
-        metadata.email,
-        phoneNumber,
-        metadata.pickup_date,  // Added
-        metadata.time_slot      // Added
-      ];
- 
-      console.log('Values to be inserted:', values); // Log the values being inserted
- 
-      const boundStatement = insertStatement.bind(...values);
-      statements.push(boundStatement);
- 
-      // Optionally prepare the delete statement to remove the pending order
-      if (metadata.pending_order_id) {
-        const deleteStatement = env.MY_DB.prepare('DELETE FROM pending_orders WHERE id = ?')
-          .bind(metadata.pending_order_id);
-        statements.push(deleteStatement);
-      }
- 
-      // Execute all statements as a single transaction
-      const results = await env.MY_DB.batch(statements);
- 
-      // Check if the insert was successful
-      const insertResult = results[0];
-      if (!insertResult.meta?.changes) {
-        throw new Error('Failed to insert confirmed order');
-      }
- 
-      console.log('Insert result:', insertResult); // Log the insert result
-      console.log('Order successfully inserted and pending order deleted if applicable.');
+
+      console.log('Metadata successfully copied to Payment Intent:', metadata);
+      
+      // Handle further order processing logic here if needed
     }
- 
+
+    // Handle payment_intent.succeeded event
+    if (event.type === 'payment_intent.succeeded') {
+      const paymentIntent = event.data.object as Stripe.PaymentIntent;
+
+      // Make sure to add metadata if missing
+      await stripe.paymentIntents.update(paymentIntent.id, {
+        metadata: {
+          ...paymentIntent.metadata,  // Preserve existing metadata
+          // Additional fields if needed, for example:
+          // "confirmation_message": "Payment completed successfully!"
+        },
+      });
+
+      console.log(`Updated metadata for Payment Intent on success: ${paymentIntent.id}`);
+    }
+
     return new Response(JSON.stringify({ received: true }), { status: 200 });
   } catch (error) {
     console.error('Webhook error:', error);
