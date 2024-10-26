@@ -7383,7 +7383,7 @@ async function handleWebhook(request, env) {
         Customer Email: ${metadata.email}
         Customer Phone: ${phoneNumber}
       `;
-      await sendEmail("arknetcouriers@outlook.co.uk", "New Order Confirmation", emailContent, env);
+      await sendEmail("arknetcouriers@outlook.com", "New Order Confirmation", emailContent, env);
       console.log("Order successfully inserted and pending order deleted if applicable.");
     }
     if (event.type === "payment_intent.succeeded") {
