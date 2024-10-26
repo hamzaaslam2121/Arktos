@@ -222,7 +222,7 @@ async function sendEmail(to: string, subject: string, text: string, env: Env) {
     },
     body: JSON.stringify({
       personalizations: [{ to: [{ email: to }] }],
-      from: { email: 'arknetcouriers@outlook.com' },
+      from: { email: 'no-reply@em4267.arknetcouriers.co.uk' },  // Use the verified domain email
       subject: subject,
       content: [{ type: 'text/plain', value: text }]
     })
@@ -235,6 +235,7 @@ async function sendEmail(to: string, subject: string, text: string, env: Env) {
     console.log("SendGrid response:", await response.text()); // Log the response if successful
   }
 }
+
 
 
 async function handleCreateCheckoutSession(request: Request, env: Env, headers: HeadersInit): Promise<Response> {
