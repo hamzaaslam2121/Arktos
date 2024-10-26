@@ -646,19 +646,21 @@ console.log("Current user ID:", userId);
     }).replace(/\//g, '-');
 
     const formData = {
-        user: userId,   
-        pickup: pickupInput.value || pickupPostcodeInput.value,
-        destination: destinationInput.value || destinationPostcodeInput.value,
-        price: parseFloat(priceElement.textContent || '0'),
-        distance: calculatedDistance,
-        completed: 0,
-        shippingType: shippingTypeSelect.value,
-        weight: parseFloat(weightInput.value) || 0,
-        datetime: datetime,
-        email: userEmail,
-        deliveryDate: deliveryDateInput.value,
-        deliveryTime: deliveryTimeSelect.value,
-      };
+      user: userId,   
+      pickup: pickupInput.value || pickupPostcodeInput.value,
+      destination: destinationInput.value || destinationPostcodeInput.value,
+      pickupPostcode: pickupPostcodeInput.value, // Add this line
+      destinationPostcode: destinationPostcodeInput.value, // Add this line
+      price: parseFloat(priceElement.textContent || '0'),
+      distance: calculatedDistance,
+      completed: 0,
+      shippingType: shippingTypeSelect.value,
+      weight: parseFloat(weightInput.value) || 0,
+      datetime: datetime,
+      email: userEmail,
+      deliveryDate: deliveryDateInput.value,
+      deliveryTime: deliveryTimeSelect.value,
+  };
 
       console.log('Submitting form data:', formData);
 

@@ -246,19 +246,21 @@ async function handleCreateCheckoutSession(request: Request, env: Env, headers: 
 
   try {
     const stripe = new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' as Stripe.LatestApiVersion });
-    const data = await request.json() as QuoteData;
+    const data = await request.json() as QuoteData & { pickupPostcode: string; destinationPostcode: string };
 
     // Create a temporary pending order record
     const pendingResult = await env.MY_DB.prepare(
       `INSERT INTO pending_orders (
-        user, pickup, destination, price, completed, shippingType, 
+        user, pickup, destination, pickup_postcode, destination_postcode, price, completed, shippingType, 
         weight, datetime, status, email, pickup_date, time_slot
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .bind(
       data.user,
       data.pickup,
       data.destination,
+      data.pickupPostcode,     // New field
+      data.destinationPostcode, // New field
       data.price,
       data.completed,
       data.shippingType,
@@ -266,8 +268,8 @@ async function handleCreateCheckoutSession(request: Request, env: Env, headers: 
       data.datetime,
       'pending',
       data.email,
-      data.deliveryDate,   // Added
-      data.deliveryTime      // Added
+      data.deliveryDate,
+      data.deliveryTime
     )
     .run();
 
@@ -299,39 +301,18 @@ async function handleCreateCheckoutSession(request: Request, env: Env, headers: 
         user: data.user,
         pickup: data.pickup,
         destination: data.destination,
+        pickup_postcode: data.pickupPostcode, // Add to metadata
+        destination_postcode: data.destinationPostcode, // Add to metadata
         price: data.price.toString(),
         completed: data.completed.toString(),
         shippingType: data.shippingType,
         weight: data.weight.toString(),
         datetime: data.datetime,
         email: data.email,
-        pickup_date: data.deliveryDate,  // Added
-        time_slot: data.deliveryTime     // Added
+        pickup_date: data.deliveryDate,
+        time_slot: data.deliveryTime
       },
     });
-
-    // Capture the payment intent ID to propagate metadata if needed
-    const paymentIntentId = session.payment_intent;
-
-    if (paymentIntentId) {
-      // Add the same metadata to the Payment Intent explicitly
-      await stripe.paymentIntents.update(paymentIntentId as string, {
-        metadata: {
-          pending_order_id: pendingOrderId?.toString(),
-          user: data.user,
-          pickup: data.pickup,
-          destination: data.destination,
-          price: data.price.toString(),
-          completed: data.completed.toString(),
-          shippingType: data.shippingType,
-          weight: data.weight.toString(),
-          datetime: data.datetime,
-          email: data.email,
-          pickup_date: data.deliveryDate,  // Added
-          time_slot: data.deliveryTime     // Added
-        },
-      });
-    }
 
     return new Response(JSON.stringify({ sessionId: session.id, url: session.url }), {
       headers: {
@@ -352,11 +333,12 @@ async function handleCreateCheckoutSession(request: Request, env: Env, headers: 
 }
 
 
+
 async function handleWebhook(request: Request, env: Env): Promise<Response> {
   console.log(`Webhook request method: ${request.method}`);
   console.log(`Webhook request URL: ${request.url}`);
   console.log(`Webhook request headers:`, [...request.headers]);
- 
+
   if (request.method !== 'POST') {
     console.warn(`Unexpected HTTP method: ${request.method}`);
     return new Response('Method Not Allowed', {
@@ -364,53 +346,55 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
       headers: { 'Allow': 'POST' },
     });
   }
- 
+
   const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
     apiVersion: '2024-09-30.acacia',
   });
   const signature = request.headers.get('stripe-signature');
   const body = await request.text();
- 
+
   if (!signature || !env.STRIPE_WEBHOOK_SECRET) {
     console.error('Invalid webhook request: Missing signature or webhook secret');
     return new Response('Invalid webhook request', { status: 400 });
   }
- 
+
   try {
     const event = await stripe.webhooks.constructEventAsync(
       body,
       signature,
       env.STRIPE_WEBHOOK_SECRET
     );
- 
+
     console.log(`Webhook event type: ${event.type}`);
- 
+
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object as Stripe.Checkout.Session;
       const metadata = session.metadata;
- 
+
       console.log('Session metadata:', metadata); // Log the entire metadata object
- 
+
       if (!metadata) {
         throw new Error('No metadata found in session');
       }
- 
+
       const phoneNumber = session.customer_details?.phone || '';
- 
+
       const statements = [];
- 
+
       // Prepare the insert statement into orders
       const insertStatement = env.MY_DB.prepare(
         `INSERT INTO orders (
-          user, pickup, destination, price, completed, shippingType, 
+          user, pickup, destination, pickup_postcode, destination_postcode, price, completed, shippingType, 
           weight, datetime, stripe_payment_intent_id, email, phone_number, pickup_date, time_slot
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       );
- 
+
       const values = [
         metadata.user,
         metadata.pickup,
         metadata.destination,
+        metadata.pickup_postcode,       // New field
+        metadata.destination_postcode,   // New field
         parseFloat(metadata.price),
         parseInt(metadata.completed),
         metadata.shippingType,
@@ -419,25 +403,23 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
         session.payment_intent as string,
         metadata.email,
         phoneNumber,
-        metadata.pickup_date,  // Added
-        metadata.time_slot      // Added
+        metadata.pickup_date,
+        metadata.time_slot
       ];
- 
-      console.log('Values to be inserted:', values); // Log the values being inserted
- 
+
       const boundStatement = insertStatement.bind(...values);
       statements.push(boundStatement);
- 
+
       // Optionally prepare the delete statement to remove the pending order
       if (metadata.pending_order_id) {
         const deleteStatement = env.MY_DB.prepare('DELETE FROM pending_orders WHERE id = ?')
           .bind(metadata.pending_order_id);
         statements.push(deleteStatement);
       }
- 
+
       // Execute all statements as a single transaction
       const results = await env.MY_DB.batch(statements);
- 
+
       // Check if the insert was successful
       const insertResult = results[0];
       if (!insertResult.meta?.changes) {
@@ -449,7 +431,9 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
         Order confirmed with the following details:
         User: ${metadata.user}
         Pickup: ${metadata.pickup}
+        Pickup Postcode: ${metadata.pickup_postcode}       // Add postcode to email
         Destination: ${metadata.destination}
+        Destination Postcode: ${metadata.destination_postcode} // Add postcode to email
         Price: £${metadata.price}
         Shipping Type: ${metadata.shippingType}
         Weight: ${metadata.weight}kg
@@ -461,7 +445,7 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
       `;
       
       await sendEmail('arknetcouriers@outlook.com', 'New Order Confirmation', emailContent, env);
- 
+
       console.log('Order successfully inserted and pending order deleted if applicable.');
     }
 
@@ -478,7 +462,7 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
 
       console.log(`Updated metadata for Payment Intent on success: ${paymentIntent.id}`);
     }
- 
+
     return new Response(JSON.stringify({ received: true }), { status: 200 });
   } catch (error) {
     console.error('Webhook error:', error);
@@ -491,7 +475,6 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
     );
   }
 }
-
 
 
 async function handleCreatePaymentIntent(request: Request, env: Env): Promise<Response> {
