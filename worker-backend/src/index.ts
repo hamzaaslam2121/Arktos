@@ -246,14 +246,14 @@ async function handleCreateCheckoutSession(request: Request, env: Env, headers: 
 
   try {
     const stripe = new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' as Stripe.LatestApiVersion });
-    const data = await request.json() as QuoteData & { pickupPostcode: string; destinationPostcode: string };
+    const data = await request.json() as QuoteData & { pickupPostcode: string; destinationPostcode: string; palletQuantity: number};
 
     // Create a temporary pending order record
     const pendingResult = await env.MY_DB.prepare(
       `INSERT INTO pending_orders (
         user, pickup, destination, pickup_postcode, destination_postcode, price, completed, shippingType, 
-        weight, datetime, status, email, pickup_date, time_slot
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        weight, datetime, status, email, pickup_date, time_slot, pallet_quantity
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .bind(
       data.user,
@@ -269,7 +269,8 @@ async function handleCreateCheckoutSession(request: Request, env: Env, headers: 
       'pending',
       data.email,
       data.deliveryDate,
-      data.deliveryTime
+      data.deliveryTime,
+      data.palletQuantity
     )
     .run();
 
@@ -310,7 +311,8 @@ async function handleCreateCheckoutSession(request: Request, env: Env, headers: 
         datetime: data.datetime,
         email: data.email,
         pickup_date: data.deliveryDate,
-        time_slot: data.deliveryTime
+        time_slot: data.deliveryTime,
+        pallet_quantity: data.palletQuantity
       },
     });
 
@@ -385,8 +387,8 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
       const insertStatement = env.MY_DB.prepare(
         `INSERT INTO orders (
           user, pickup, destination, pickup_postcode, destination_postcode, price, completed, shippingType, 
-          weight, datetime, stripe_payment_intent_id, email, phone_number, pickup_date, time_slot
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          weight, datetime, stripe_payment_intent_id, email, phone_number, pickup_date, time_slot, pallet_quantity
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       );
 
       const values = [
@@ -404,7 +406,8 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
         metadata.email,
         phoneNumber,
         metadata.pickup_date,
-        metadata.time_slot
+        metadata.time_slot,
+        metadata.pallet_quantity
       ];
 
       const boundStatement = insertStatement.bind(...values);
@@ -437,6 +440,7 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
         Price: £${metadata.price}
         Shipping Type: ${metadata.shippingType}
         Weight: ${metadata.weight}kg
+        Pallet Quanitity: ${metadata.pallet_quantity}
         Date and Time: ${metadata.datetime}
         Delivery Date: ${metadata.pickup_date}
         Delivery Time: ${metadata.time_slot}
