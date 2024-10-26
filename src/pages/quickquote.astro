@@ -4,7 +4,7 @@ import { Icon } from "astro-icon/components";
 import Starfield from "~/components/starfield.astro";
 import ThemeSwitcher from "~/components/theme-switcher.astro";
 import Header from "~/components/header.astro";
-import {SignInButton, UserButton } from "@clerk/astro/components";
+import { SignInButton, UserButton } from "@clerk/astro/components";
 import type { NavItem } from "~/types";
 
 // QuickQuotes.astro
@@ -19,7 +19,6 @@ console.log("Current user ID:", userId);
 
 // Your existing QuickQuotes logic here
 // ...
-
 ---
 <!-- Add viewport meta tag in your head section -->
 <head>
@@ -38,7 +37,7 @@ console.log("Current user ID:", userId);
     #page-header .user-button-wrapper .cl-userButtonAvatarBox {
       @apply h-7 w-7 !important;  /* Adjust this value as needed */
     }
-        /* Custom styles for QuickQuote header */
+    /* Custom styles for QuickQuote header */
     #page-header .logo {
       @apply size-7;  /* Adjust this value to change the logo size */
     }
@@ -63,7 +62,7 @@ console.log("Current user ID:", userId);
     >
         <a class="flex items-center gap-3 hover:!text-default" href="/">
           <h1 class="sr-only">Arknet</h1>
-          <Icon name="arknetAlogo" class="text-white  size-7" />
+          <Icon name="arknetAlogo" class="text-white size-7" />
           <Icon name="arknetnolog" class="hidden h-3 sm:block text-white" />
       </a>
         
@@ -170,6 +169,7 @@ console.log("Current user ID:", userId);
       
         <!-- Additional Fields Section -->
         <div class="flex flex-col md:grid md:grid-cols-3 gap-4 md:gap-6">
+          <!-- Weight Input Container -->
           <div class="w-full" id="weightInputContainer">
             <label class="block text-sm font-medium mb-1" for="weight">Weight (kg):</label>
             <input
@@ -183,7 +183,8 @@ console.log("Current user ID:", userId);
             />
           </div>
           
-          <div id="palletInputContainer" class="w-full">
+          <!-- Pallet Quantity Input Container (Hidden by Default) -->
+          <div id="palletInputContainer" class="w-full hidden">
             <label class="block text-sm font-medium mb-1" for="palletQuantity">Number of Pallets:</label>
             <select
               id="palletQuantity"
@@ -192,6 +193,7 @@ console.log("Current user ID:", userId);
               <option value="">Select quantity</option>
               <option value="1">1 Pallet</option>
               <option value="2">2 Pallets</option>
+              <!-- Add more options as needed -->
             </select>
           </div>
           
@@ -342,11 +344,12 @@ console.log("Current user ID:", userId);
     //const phone_numberInput = document.getElementById('phone_number') as HTMLInputElement;
     const deliveryDateInput = document.getElementById('deliveryDate') as HTMLInputElement;
     const deliveryTimeSelect = document.getElementById('deliveryTime') as HTMLSelectElement;
-    const weightInputContainer = document.getElementById('weightInput') as HTMLSelectElement;
-    const palletInputContainer = document.getElementById('palletInput') as HTMLDivElement;
+    // Corrected the element ID here
+    const weightInputContainer = document.getElementById('weightInputContainer') as HTMLDivElement;
+    const palletInputContainer = document.getElementById('palletInputContainer') as HTMLDivElement;
     const palletQuantitySelect = document.getElementById('palletQuantity') as HTMLSelectElement;
 
-    
+
     let calculatedDistance = 0;
 
     // Modified Autocomplete initialization to restrict to UK addresses
@@ -560,7 +563,21 @@ console.log("Current user ID:", userId);
   }
 
     function updatePrice() {
-      if (pickupPostcodeInput.value && destinationPostcodeInput.value && weightInput.value && calculatedDistance > 0) {
+      const shippingType = shippingTypeSelect.value;
+      
+      // Determine if we should use weight or pallet quantity in price calculation
+      if (shippingType !== 'pallet') {
+        // If not pallet, ensure weight is required and pallet quantity is not
+        weightInput.required = true;
+        palletQuantitySelect.required = false;
+      } else {
+        // If pallet, ensure pallet quantity is required and weight is not
+        weightInput.required = false;
+        palletQuantitySelect.required = true;
+      }
+
+      if (pickupPostcodeInput.value && destinationPostcodeInput.value && calculatedDistance > 0) {
+        // If shipping type is pallet, ignore weight in price calculation
         const price = calculatePrice();
         priceElement.textContent = price;
         priceInfo.classList.remove('hidden');
@@ -621,17 +638,12 @@ console.log("Current user ID:", userId);
 
       if (select.value === 'pallet') {
         // Hide the weight input and show the pallet quantity selector
-        weightInput.classList.add('hidden');
+        weightInputContainer.classList.add('hidden');
         palletInputContainer.classList.remove('hidden');
-        weightInput.required = false;
-        palletQuantitySelect.required = true;
-      }
-      if (select.value === 'document') {
-        // Hide the weight input and show the pallet quantity selector
-        weightInput.classList.remove('hidden');
+      } else {
+        // Show the weight input and hide the pallet quantity selector
+        weightInputContainer.classList.remove('hidden');
         palletInputContainer.classList.add('hidden');
-        weightInput.required = true;
-        palletQuantitySelect.required = false;
       }
 
       updatePrice();
@@ -698,44 +710,46 @@ console.log("Current user ID:", userId);
       email: userEmail,
       deliveryDate: deliveryDateInput.value,
       deliveryTime: deliveryTimeSelect.value,
+      // Include palletQuantity if shipping type is pallet
+      ...(shippingTypeSelect.value === 'pallet' && { palletQuantity: parseInt(palletQuantitySelect.value) || 0 }),
   };
 
-      console.log('Submitting form data:', formData);
+    console.log('Submitting form data:', formData);
 
-      try {
-        const response = await fetch(`${apiBaseUrl}/api/create-checkout-session`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(formData),
-        });
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/create-checkout-session`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error}, details: ${errorData.details}`);
-        }
-
-        const { sessionId, url } = await response.json();
-
-        if (url) {
-          // If the server provides a URL, use it for redirection
-          window.location.href = url;
-        } else if (sessionId) {
-          // Fall back to client-side redirection if only sessionId is provided
-          const result = await stripe.redirectToCheckout({ sessionId });
-          if (result.error) {
-            throw new Error(result.error.message);
-          }
-        } else {
-          throw new Error('Neither URL nor sessionId was provided by the server');
-        }
-      } catch (error) {
-        console.error('Error:', error);
-        alert('Error creating checkout session: ' + (error instanceof Error ? error.message : String(error)));
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error}, details: ${errorData.details}`);
       }
-    });
-    
+
+      const { sessionId, url } = await response.json();
+
+      if (url) {
+        // If the server provides a URL, use it for redirection
+        window.location.href = url;
+      } else if (sessionId) {
+        // Fall back to client-side redirection if only sessionId is provided
+        const result = await stripe.redirectToCheckout({ sessionId });
+        if (result.error) {
+          throw new Error(result.error.message);
+        }
+      } else {
+        throw new Error('Neither URL nor sessionId was provided by the server');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error creating checkout session: ' + (error instanceof Error ? error.message : String(error)));
+    }
+  });
+  
   if (clerk.user) {
         quoteButton.textContent = "Get Quote & Book";
       } else {
