@@ -386,7 +386,7 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
         `INSERT INTO orders (
           user, pickup, destination, pickup_postcode, destination_postcode, price, completed, shippingType, 
           weight, datetime, stripe_payment_intent_id, email, phone_number, pickup_date, time_slot
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       );
 
       const values = [
