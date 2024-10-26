@@ -222,7 +222,7 @@ async function sendEmail(to: string, subject: string, text: string, env: Env) {
     },
     body: JSON.stringify({
       personalizations: [{ to: [{ email: to }] }],
-      from: { email: 'no-reply@arknetcouriers.co.uk' },
+      from: { email: 'arknetcouriers@outlook.co.uk' },
       subject: subject,
       content: [{ type: 'text/plain', value: text }]
     })
