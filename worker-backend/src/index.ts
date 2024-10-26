@@ -371,7 +371,7 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
       const session = event.data.object as Stripe.Checkout.Session;
       const metadata = session.metadata;
 
-      console.log('Session metadata:', metadata);
+      console.log('Session metadata:', metadata); // Log the entire metadata object
 
       if (!metadata) {
         throw new Error('No metadata found in session');
@@ -381,6 +381,7 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
 
       const statements = [];
 
+      // Prepare the insert statement into orders
       const insertStatement = env.MY_DB.prepare(
         `INSERT INTO orders (
           user, pickup, destination, pickup_postcode, destination_postcode, price, completed, shippingType, 
@@ -392,8 +393,8 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
         metadata.user,
         metadata.pickup,
         metadata.destination,
-        metadata.pickup_postcode,
-        metadata.destination_postcode,
+        metadata.pickup_postcode,       // New field
+        metadata.destination_postcode,   // New field
         parseFloat(metadata.price),
         parseInt(metadata.completed),
         metadata.shippingType,
@@ -409,125 +410,53 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
       const boundStatement = insertStatement.bind(...values);
       statements.push(boundStatement);
 
+      // Optionally prepare the delete statement to remove the pending order
       if (metadata.pending_order_id) {
         const deleteStatement = env.MY_DB.prepare('DELETE FROM pending_orders WHERE id = ?')
           .bind(metadata.pending_order_id);
         statements.push(deleteStatement);
       }
 
+      // Execute all statements as a single transaction
       const results = await env.MY_DB.batch(statements);
 
+      // Check if the insert was successful
       const insertResult = results[0];
       if (!insertResult.meta?.changes) {
         throw new Error('Failed to insert confirmed order');
       }
 
+      // Send email with metadata details once the payment is confirmed
       const emailContent = `
-<!DOCTYPE html>
-<html>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-  <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-    <div style="background-color: #4a90e2; color: white; padding: 20px; text-align: center; margin-bottom: 20px;">
-      <h2 style="margin: 0;">New Order Confirmation</h2>
-    </div>
-    
-    <div style="margin-bottom: 20px;">
-      <div style="background-color: #f8f9fa; padding: 10px; font-weight: bold;">Customer Information</div>
-      <table style="width: 100%; border-collapse: collapse;">
-        <tr>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd; width: 40%;">Customer Name:</td>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${metadata.user}</td>
-        </tr>
-        <tr>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">Email:</td>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${metadata.email}</td>
-        </tr>
-        <tr>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">Phone:</td>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${phoneNumber}</td>
-        </tr>
-      </table>
-    </div>
-
-    <div style="margin-bottom: 20px;">
-      <div style="background-color: #f8f9fa; padding: 10px; font-weight: bold;">Delivery Details</div>
-      <table style="width: 100%; border-collapse: collapse;">
-        <tr>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd; width: 40%;">Pickup Address:</td>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${metadata.pickup}</td>
-        </tr>
-        <tr>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">Pickup Postcode:</td>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${metadata.pickup_postcode}</td>
-        </tr>
-        <tr>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">Destination Address:</td>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${metadata.destination}</td>
-        </tr>
-        <tr>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">Destination Postcode:</td>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${metadata.destination_postcode}</td>
-        </tr>
-      </table>
-    </div>
-
-    <div style="margin-bottom: 20px;">
-      <div style="background-color: #f8f9fa; padding: 10px; font-weight: bold;">Shipping Information</div>
-      <table style="width: 100%; border-collapse: collapse;">
-        <tr>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd; width: 40%;">Shipping Type:</td>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${metadata.shippingType}</td>
-        </tr>
-        <tr>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">Weight:</td>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${metadata.weight}kg</td>
-        </tr>
-        <tr>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">Delivery Date:</td>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${metadata.pickup_date}</td>
-        </tr>
-        <tr>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">Time Slot:</td>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${metadata.time_slot}</td>
-        </tr>
-      </table>
-    </div>
-
-    <div style="margin-bottom: 20px;">
-      <div style="background-color: #f8f9fa; padding: 10px; font-weight: bold;">Order Summary</div>
-      <table style="width: 100%; border-collapse: collapse;">
-        <tr>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd; width: 40%;">Order Date & Time:</td>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${metadata.datetime}</td>
-        </tr>
-        <tr>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">Total Price:</td>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">£${metadata.price}</td>
-        </tr>
-      </table>
-    </div>
-  </div>
-</body>
-</html>`;
-
-      // Send email with HTML content
-      const emailData = {
-        to: 'arknetcouriers@outlook.com',
-        subject: 'New Order Confirmation',
-        html: emailContent,  // Use 'html' instead of 'text' or 'content'
-        text: 'Please view this email in an HTML compatible email client' // Fallback plain text
-      };
-
+        Order confirmed with the following details:
+        User: ${metadata.user}
+        Pickup: ${metadata.pickup}
+        Pickup Postcode: ${metadata.pickup_postcode}       
+        Destination: ${metadata.destination}
+        Destination Postcode: ${metadata.destination_postcode} 
+        Price: £${metadata.price}
+        Shipping Type: ${metadata.shippingType}
+        Weight: ${metadata.weight}kg
+        Date and Time: ${metadata.datetime}
+        Delivery Date: ${metadata.pickup_date}
+        Delivery Time: ${metadata.time_slot}
+        Customer Email: ${metadata.email}
+        Customer Phone: ${phoneNumber}
+      `;
+      
       await sendEmail('arknetcouriers@outlook.com', 'New Order Confirmation', emailContent, env);
+
       console.log('Order successfully inserted and pending order deleted if applicable.');
     }
 
+    // Handle payment_intent.succeeded event to ensure metadata appears in Payment Intent
     if (event.type === 'payment_intent.succeeded') {
       const paymentIntent = event.data.object as Stripe.PaymentIntent;
 
+      // Make sure metadata persists on the Payment Intent
       await stripe.paymentIntents.update(paymentIntent.id, {
         metadata: {
-          ...paymentIntent.metadata,
+          ...paymentIntent.metadata,  // Preserve any existing metadata
         },
       });
 
