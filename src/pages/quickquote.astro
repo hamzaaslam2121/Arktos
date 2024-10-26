@@ -170,7 +170,7 @@ console.log("Current user ID:", userId);
       
         <!-- Additional Fields Section -->
         <div class="flex flex-col md:grid md:grid-cols-3 gap-4 md:gap-6">
-          <div class="w-full">
+          <div class="w-full" id="weightInputContainer">
             <label class="block text-sm font-medium mb-1" for="weight">Weight (kg):</label>
             <input
               type="number"
@@ -181,6 +181,18 @@ console.log("Current user ID:", userId);
               class="w-full px-3 py-3 md:py-2 text-base md:text-sm bg-gray-800 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
               required
             />
+          </div>
+          
+          <div id="palletInputContainer" class="w-full">
+            <label class="block text-sm font-medium mb-1" for="palletQuantity">Number of Pallets:</label>
+            <select
+              id="palletQuantity"
+              class="w-full px-3 py-3 md:py-2 text-base md:text-sm bg-gray-800 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="">Select quantity</option>
+              <option value="1">1 Pallet</option>
+              <option value="2">2 Pallets</option>
+            </select>
           </div>
           
           <div class="w-full">
@@ -330,7 +342,11 @@ console.log("Current user ID:", userId);
     //const phone_numberInput = document.getElementById('phone_number') as HTMLInputElement;
     const deliveryDateInput = document.getElementById('deliveryDate') as HTMLInputElement;
     const deliveryTimeSelect = document.getElementById('deliveryTime') as HTMLSelectElement;
+    const weightInputContainer = document.getElementById('weightInput') as HTMLSelectElement;
+    const palletInputContainer = document.getElementById('palletInput') as HTMLDivElement;
+    const palletQuantitySelect = document.getElementById('palletQuantity') as HTMLSelectElement;
 
+    
     let calculatedDistance = 0;
 
     // Modified Autocomplete initialization to restrict to UK addresses
@@ -600,7 +616,29 @@ console.log("Current user ID:", userId);
     // Remove distance calculation from address input listeners
     weightInput.addEventListener('input', updatePrice);
     //serviceLevelSelect.addEventListener('change', updatePrice);
-    shippingTypeSelect.addEventListener('change', updatePrice);
+    shippingTypeSelect.addEventListener('change', (e: Event) => {
+      const select = e.target as HTMLSelectElement;
+
+      if (select.value === 'pallet') {
+        // Hide the weight input and show the pallet quantity selector
+        weightInput.classList.add('hidden');
+        palletInputContainer.classList.remove('hidden');
+        weightInput.required = false;
+        palletQuantitySelect.required = true;
+      }
+      if (select.value === 'document') {
+        // Hide the weight input and show the pallet quantity selector
+        weightInput.classList.remove('hidden');
+        palletInputContainer.classList.add('hidden');
+        weightInput.required = true;
+        palletQuantitySelect.required = false;
+      }
+
+      updatePrice();
+    });
+
+    // Add pallet quantity change listener
+    palletQuantitySelect.addEventListener('change', updatePrice);
 
     // Hide suggestions when clicking outside
     document.addEventListener('click', (e) => {
