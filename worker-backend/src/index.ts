@@ -422,120 +422,103 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
         throw new Error('Failed to insert confirmed order');
       }
 
-      // Improved email formatting with HTML
       const emailContent = `
-        <html>
-        <head>
-          <style>
-            table {
-              border-collapse: collapse;
-              width: 100%;
-              max-width: 600px;
-              margin: 20px 0;
-            }
-            th, td {
-              padding: 12px;
-              text-align: left;
-              border-bottom: 1px solid #ddd;
-            }
-            th {
-              background-color: #f5f5f5;
-              font-weight: bold;
-            }
-            .order-header {
-              background-color: #4a90e2;
-              color: white;
-              padding: 20px;
-              text-align: center;
-              margin-bottom: 20px;
-            }
-            .section-header {
-              background-color: #f8f9fa;
-              font-weight: bold;
-              padding: 10px;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="order-header">
-            <h2>New Order Confirmation</h2>
-          </div>
-          
-          <table>
-            <tr>
-              <th colspan="2" class="section-header">Customer Information</th>
-            </tr>
-            <tr>
-              <th>Customer Name</th>
-              <td>${metadata.user}</td>
-            </tr>
-            <tr>
-              <th>Email</th>
-              <td>${metadata.email}</td>
-            </tr>
-            <tr>
-              <th>Phone</th>
-              <td>${phoneNumber}</td>
-            </tr>
+<!DOCTYPE html>
+<html>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+  <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background-color: #4a90e2; color: white; padding: 20px; text-align: center; margin-bottom: 20px;">
+      <h2 style="margin: 0;">New Order Confirmation</h2>
+    </div>
+    
+    <div style="margin-bottom: 20px;">
+      <div style="background-color: #f8f9fa; padding: 10px; font-weight: bold;">Customer Information</div>
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd; width: 40%;">Customer Name:</td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${metadata.user}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">Email:</td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${metadata.email}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">Phone:</td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${phoneNumber}</td>
+        </tr>
+      </table>
+    </div>
 
-            <tr>
-              <th colspan="2" class="section-header">Delivery Details</th>
-            </tr>
-            <tr>
-              <th>Pickup Address</th>
-              <td>${metadata.pickup}</td>
-            </tr>
-            <tr>
-              <th>Pickup Postcode</th>
-              <td>${metadata.pickup_postcode}</td>
-            </tr>
-            <tr>
-              <th>Destination Address</th>
-              <td>${metadata.destination}</td>
-            </tr>
-            <tr>
-              <th>Destination Postcode</th>
-              <td>${metadata.destination_postcode}</td>
-            </tr>
+    <div style="margin-bottom: 20px;">
+      <div style="background-color: #f8f9fa; padding: 10px; font-weight: bold;">Delivery Details</div>
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd; width: 40%;">Pickup Address:</td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${metadata.pickup}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">Pickup Postcode:</td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${metadata.pickup_postcode}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">Destination Address:</td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${metadata.destination}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">Destination Postcode:</td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${metadata.destination_postcode}</td>
+        </tr>
+      </table>
+    </div>
 
-            <tr>
-              <th colspan="2" class="section-header">Shipping Information</th>
-            </tr>
-            <tr>
-              <th>Shipping Type</th>
-              <td>${metadata.shippingType}</td>
-            </tr>
-            <tr>
-              <th>Weight</th>
-              <td>${metadata.weight}kg</td>
-            </tr>
-            <tr>
-              <th>Delivery Date</th>
-              <td>${metadata.pickup_date}</td>
-            </tr>
-            <tr>
-              <th>Time Slot</th>
-              <td>${metadata.time_slot}</td>
-            </tr>
+    <div style="margin-bottom: 20px;">
+      <div style="background-color: #f8f9fa; padding: 10px; font-weight: bold;">Shipping Information</div>
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd; width: 40%;">Shipping Type:</td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${metadata.shippingType}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">Weight:</td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${metadata.weight}kg</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">Delivery Date:</td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${metadata.pickup_date}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">Time Slot:</td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${metadata.time_slot}</td>
+        </tr>
+      </table>
+    </div>
 
-            <tr>
-              <th colspan="2" class="section-header">Order Summary</th>
-            </tr>
-            <tr>
-              <th>Order Date & Time</th>
-              <td>${metadata.datetime}</td>
-            </tr>
-            <tr>
-              <th>Total Price</th>
-              <td>£${metadata.price}</td>
-            </tr>
-          </table>
-        </body>
-        </html>
-      `;
-      
+    <div style="margin-bottom: 20px;">
+      <div style="background-color: #f8f9fa; padding: 10px; font-weight: bold;">Order Summary</div>
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd; width: 40%;">Order Date & Time:</td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${metadata.datetime}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">Total Price:</td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">£${metadata.price}</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</body>
+</html>`;
+
+      // Send email with HTML content
+      const emailData = {
+        to: 'arknetcouriers@outlook.com',
+        subject: 'New Order Confirmation',
+        html: emailContent,  // Use 'html' instead of 'text' or 'content'
+        text: 'Please view this email in an HTML compatible email client' // Fallback plain text
+      };
+
       await sendEmail('arknetcouriers@outlook.com', 'New Order Confirmation', emailContent, env);
-
       console.log('Order successfully inserted and pending order deleted if applicable.');
     }
 
