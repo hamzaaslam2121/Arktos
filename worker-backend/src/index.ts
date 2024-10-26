@@ -228,10 +228,14 @@ async function sendEmail(to: string, subject: string, text: string, env: Env) {
     })
   });
 
+  // Check response status and output the full response text for debugging
   if (!response.ok) {
     console.error("Failed to send email:", await response.text());
+  } else {
+    console.log("SendGrid response:", await response.text()); // Log the response if successful
   }
 }
+
 
 async function handleCreateCheckoutSession(request: Request, env: Env, headers: HeadersInit): Promise<Response> {
   console.log("in handle create checkout session");
