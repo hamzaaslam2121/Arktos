@@ -1,4 +1,3 @@
-// worker-backend/test/index.spec.ts
 import { describe, it, expect } from 'vitest';
 import worker from '../src/index';
 import type { D1Database } from '@cloudflare/workers-types';
@@ -7,11 +6,12 @@ import type { D1Database } from '@cloudflare/workers-types';
 const mockEnv = {
   MY_DB: {
     prepare: () => {},
-    exec: () => Promise.resolve({ results: [] })
+    exec: () => Promise.resolve({ results: [] }),
   } as unknown as D1Database,
   GOOGLE_MAPS_API_KEY: 'test_key',
   STRIPE_SECRET_KEY: 'test_key',
-  STRIPE_WEBHOOK_SECRET: 'test_webhook_secret'
+  STRIPE_WEBHOOK_SECRET: 'test_webhook_secret',
+  SENDGRID_API_KEY: 'test_sendgrid_api_key', // Added this line
 };
 
 describe('Worker test', () => {
