@@ -6,6 +6,7 @@ interface Env {
   GOOGLE_MAPS_API_KEY: string; 
   STRIPE_SECRET_KEY: string;
   STRIPE_WEBHOOK_SECRET: string;
+  SENDGRID_API_KEY: string;
 }
 
 interface QuoteData {
@@ -212,6 +213,26 @@ async function handleApiRequest(pathname: string, request: Request, env: Env): P
   return new Response('Not Found', { status: 404, headers });
 }
 
+async function sendEmail(to: string, subject: string, text: string, env: Env) {
+  const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${env.SENDGRID_API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      personalizations: [{ to: [{ email: to }] }],
+      from: { email: 'no-reply@arknetcouriers.co.uk' },
+      subject: subject,
+      content: [{ type: 'text/plain', value: text }]
+    })
+  });
+
+  if (!response.ok) {
+    console.error("Failed to send email:", await response.text());
+  }
+}
+
 async function handleCreateCheckoutSession(request: Request, env: Env, headers: HeadersInit): Promise<Response> {
   console.log("in handle create checkout session");
   if (request.method !== 'POST') {
@@ -369,10 +390,6 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
         throw new Error('No metadata found in session');
       }
  
-      // Log individual metadata fields
-      console.log('Email from metadata:', metadata.email);
-      console.log('Customer details:', session.customer_details);
- 
       const phoneNumber = session.customer_details?.phone || '';
  
       const statements = [];
@@ -421,8 +438,25 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
       if (!insertResult.meta?.changes) {
         throw new Error('Failed to insert confirmed order');
       }
+
+      // Send email with metadata details once the payment is confirmed
+      const emailContent = `
+        Order confirmed with the following details:
+        User: ${metadata.user}
+        Pickup: ${metadata.pickup}
+        Destination: ${metadata.destination}
+        Price: £${metadata.price}
+        Shipping Type: ${metadata.shippingType}
+        Weight: ${metadata.weight}kg
+        Date and Time: ${metadata.datetime}
+        Delivery Date: ${metadata.pickup_date}
+        Delivery Time: ${metadata.time_slot}
+        Customer Email: ${metadata.email}
+        Customer Phone: ${phoneNumber}
+      `;
+      
+      await sendEmail('arknetcouriers@outlook.co.uk', 'New Order Confirmation', emailContent, env);
  
-      console.log('Insert result:', insertResult); // Log the insert result
       console.log('Order successfully inserted and pending order deleted if applicable.');
     }
 
@@ -452,6 +486,7 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
     );
   }
 }
+
 
 
 async function handleCreatePaymentIntent(request: Request, env: Env): Promise<Response> {
