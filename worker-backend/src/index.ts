@@ -217,11 +217,11 @@ async function handleCreateCheckoutSession(request: Request, env: Env, headers: 
   if (request.method !== 'POST') {
     return new Response('Method Not Allowed', { status: 405, headers });
   }
- 
+
   try {
     const stripe = new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' as Stripe.LatestApiVersion });
     const data = await request.json() as QuoteData;
- 
+
     // Create a temporary pending order record
     const pendingResult = await env.MY_DB.prepare(
       `INSERT INTO pending_orders (
@@ -244,9 +244,9 @@ async function handleCreateCheckoutSession(request: Request, env: Env, headers: 
       data.deliveryTime      // Added
     )
     .run();
- 
+
     const pendingOrderId = pendingResult.meta?.last_row_id;
- 
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -263,7 +263,7 @@ async function handleCreateCheckoutSession(request: Request, env: Env, headers: 
         },
       ],
       mode: 'payment',
-      success_url: `${request.headers.get('Origin')}/success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${request.headers.get('Origin')}/orders?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${request.headers.get('Origin')}/quickquote`,
       phone_number_collection: {
         enabled: true,
@@ -280,10 +280,33 @@ async function handleCreateCheckoutSession(request: Request, env: Env, headers: 
         datetime: data.datetime,
         email: data.email,
         pickup_date: data.deliveryDate,  // Added
-        time_slot: data.deliveryTime       // Added
+        time_slot: data.deliveryTime     // Added
       },
     });
- 
+
+    // Capture the payment intent ID to propagate metadata if needed
+    const paymentIntentId = session.payment_intent;
+
+    if (paymentIntentId) {
+      // Add the same metadata to the Payment Intent explicitly
+      await stripe.paymentIntents.update(paymentIntentId as string, {
+        metadata: {
+          pending_order_id: pendingOrderId?.toString(),
+          user: data.user,
+          pickup: data.pickup,
+          destination: data.destination,
+          price: data.price.toString(),
+          completed: data.completed.toString(),
+          shippingType: data.shippingType,
+          weight: data.weight.toString(),
+          datetime: data.datetime,
+          email: data.email,
+          pickup_date: data.deliveryDate,  // Added
+          time_slot: data.deliveryTime     // Added
+        },
+      });
+    }
+
     return new Response(JSON.stringify({ sessionId: session.id, url: session.url }), {
       headers: {
         ...headers,
@@ -301,6 +324,7 @@ async function handleCreateCheckoutSession(request: Request, env: Env, headers: 
     );
   }
 }
+
 
 async function handleWebhook(request: Request, env: Env): Promise<Response> {
   console.log(`Webhook request method: ${request.method}`);
