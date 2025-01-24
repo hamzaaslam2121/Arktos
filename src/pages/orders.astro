@@ -573,7 +573,7 @@ let responseText: string | null = null;
             datetime: string;
         }
     
-        const clerk = new Clerk("pk_test_ZHJpdmluZy1tYWNhdy00NC5jbGVyay5hY2NvdW50cy5kZXYk");
+        const clerk = new Clerk("pk_test_ZmxleGlibGUtZ3JvdXNlLTUxLmNsZXJrLmFjY291bnRzLmRldiQ");
         await clerk.load();
     
         async function fetchOrders(userId: string): Promise<Order[]> {
@@ -900,7 +900,7 @@ function renderOrders() {
 
         if (clerk.user) {
             const userId = clerk.user.id;
-            console.log("Current user ID:", userId);
+            console.log("Current user ID: changed to hide");
             allOrders = await fetchOrders(userId);
             allOrders.reverse(); 
             console.log("Orders fetched for rendering:", allOrders);
