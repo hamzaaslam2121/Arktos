@@ -242,10 +242,10 @@ console.log("Current user ID:", userId);
           </select>
         </div>
 
-        <!-- Info Sections -->
-        <div id="distance-info" class="mt-4 p-3 bg-gray-800 bg-opacity-10 rounded-md hidden">
+        <!-- Removed the distance-info section -->
+        <!-- <div id="distance-info" class="mt-4 p-3 bg-gray-800 bg-opacity-10 rounded-md hidden">
           <p class="text-sm font-medium">Estimated driving distance: <span id="distance-value"></span></p>
-        </div>
+        </div> -->
 
         <div id="price-info" class="mt-4 p-2 bg-gray-800 bg-opacity-0 rounded-md hidden">
           <p class="text-xl md:text-lg font-bold">Price: &pound;<span id="price-value">N/A</span></p>
@@ -344,8 +344,9 @@ console.log("Current user ID:", userId);
     const destinationPostcodeInput = document.getElementById('destinationPostcode') as HTMLInputElement;
     const pickupSuggestions = document.getElementById('pickupSuggestions') as HTMLUListElement;
     const destinationSuggestions = document.getElementById('destinationSuggestions') as HTMLUListElement;
-    const distanceInfo = document.getElementById('distance-info') as HTMLDivElement;
-    const distanceValue = document.getElementById('distance-value') as HTMLSpanElement;
+    // Removed distanceInfo and distanceValue
+    // const distanceInfo = document.getElementById('distance-info') as HTMLDivElement;
+    // const distanceValue = document.getElementById('distance-value') as HTMLSpanElement;
     const priceInfo = document.getElementById('price-info') as HTMLDivElement;
     const priceElement = document.getElementById('price-value') as HTMLSpanElement;
     const weightInput = document.getElementById('weight') as HTMLInputElement;
@@ -446,8 +447,19 @@ console.log("Current user ID:", userId);
       const isPickupValid = isValidUKPostcode(pickup);
       const isDestinationValid = isValidUKPostcode(destination);
 
+      // Removed distanceInfo manipulations
+      /*
       if (!isPickupValid || !isDestinationValid) {
         distanceInfo.classList.add('hidden');
+        priceInfo.classList.add('hidden');
+        processingInfo.classList.add('hidden');
+        priceElement.textContent = 'N/A';
+        return;
+      }
+      */
+
+      if (!isPickupValid || !isDestinationValid) {
+        // distanceInfo is removed
         priceInfo.classList.add('hidden');
         processingInfo.classList.add('hidden');
         priceElement.textContent = 'N/A';
@@ -466,15 +478,16 @@ console.log("Current user ID:", userId);
 
           if (data.distance) {
             calculatedDistance = parseFloat(data.distance);
-            distanceValue.textContent = `${data.distance} ${data.unit}`;
-            distanceInfo.classList.remove('hidden');
+            // Removed distanceValue update
+            // distanceValue.textContent = `${data.distance} ${data.unit}`;
+            // distanceInfo.classList.remove('hidden');
             updatePrice();
           } else {
             throw new Error('Invalid distance data');
           }
         } catch (error) {
           console.error('Error calculating distance:', error);
-          distanceInfo.classList.add('hidden');
+          // distanceInfo.classList.add('hidden');
           priceInfo.classList.add('hidden');
           priceElement.textContent = 'N/A';
           alert('Unable to calculate distance. Please check the entered postcodes.');
@@ -483,7 +496,7 @@ console.log("Current user ID:", userId);
           showProcessing(false);
         }
       } else {
-        distanceInfo.classList.add('hidden');
+        // distanceInfo is removed
         priceInfo.classList.add('hidden');
         priceElement.textContent = 'N/A';
         showProcessing(false);
