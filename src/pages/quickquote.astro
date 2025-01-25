@@ -682,17 +682,39 @@ console.log("Current user ID:", userId);
         debounceTimer = setTimeout(() => func.apply(context, args), delay);
       }
     }
+    function validatePostcode(inputElement: HTMLInputElement, errorElement: HTMLElement): boolean {
+  const postcode = inputElement.value.trim();
+  const isValid = isValidUKPostcode(postcode);
+
+  if (!isValid && postcode) {
+    errorElement.textContent = 'Please enter a valid UK postcode.';
+    errorElement.classList.remove('hidden');
+  } else {
+    errorElement.textContent = '';
+    errorElement.classList.add('hidden');
+  }
+
+  return isValid;
+}
+
 
     // Modified event listeners to use postcode inputs for distance calculation
-    pickupPostcodeInput.addEventListener('input', debounce(() => {
-      fetchPostcodeSuggestions(pickupPostcodeInput.value, pickupSuggestions);
-      calculateDistance();
-    }, 300));
+    pickupPostcodeInput.addEventListener('blur', () => {
+      const pickupErrorElement = document.getElementById('pickupPostcodeError');
+if (pickupErrorElement) {
+  validatePostcode(pickupPostcodeInput, pickupErrorElement);
+}
+  calculateDistance(); // Only calculate if the input is valid.
+});
 
-    destinationPostcodeInput.addEventListener('input', debounce(() => {
-      fetchPostcodeSuggestions(destinationPostcodeInput.value, destinationSuggestions);
-      calculateDistance();
-    }, 300));
+destinationPostcodeInput.addEventListener('blur', () => {
+  const destinationErrorElement = document.getElementById('destinationPostcodeError');
+if (destinationErrorElement) {
+  validatePostcode(destinationPostcodeInput, destinationErrorElement);
+}
+  calculateDistance(); // Only calculate if the input is valid.
+});
+
 
     // Add blur event listeners to ensure distance calculation on field loss
     pickupPostcodeInput.addEventListener('blur', () => {
