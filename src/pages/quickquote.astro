@@ -736,27 +736,26 @@ console.log("Current user ID:", userId);
     // (These were duplicates and have been removed)
 
     weightInput.addEventListener('input', () => {
-  // Get the current cursor position
-  const cursorPos = weightInput.selectionStart;
+  const currentValue = weightInput.value;
+  const cursorPosition = weightInput.selectionStart ?? 0;
 
-  // Sanitize the input value
-  let sanitizedValue = weightInput.value.replace(/[^\d.]/g, '');
+  // Remove invalid characters and limit decimal places
+  const sanitizedValue = currentValue.replace(/[^\d.]/g, '').replace(/^0+(\d)/, '$1');
 
-  // Prevent multiple decimal points
+  // Prevent more than one decimal point
   const parts = sanitizedValue.split('.');
-  if (parts.length > 2) {
-    sanitizedValue = parts[0] + '.' + parts[1];
+  const finalValue = parts.length > 2 ? `${parts[0]}.${parts[1]}` : sanitizedValue;
+
+  // Only update if the value has actually changed
+  if (weightInput.value !== finalValue) {
+    weightInput.value = finalValue;
+
+    // Restore cursor position (adjust if characters were removed)
+    const newCursorPosition = Math.min(cursorPosition, finalValue.length);
+    weightInput.setSelectionRange(newCursorPosition, newCursorPosition);
   }
 
-  // Update the input value
-  weightInput.value = sanitizedValue;
-
-  // Restore the cursor position
-  if (cursorPos !== null) {
-    weightInput.setSelectionRange(cursorPos, cursorPos);
-  }
-
-  // Handle weight warning and price updates
+  // Check if the weight exceeds the maximum allowed
   const shippingType = shippingTypeSelect.value;
   const weightWarning = document.getElementById('weightWarning');
   const weightValue = parseFloat(weightInput.value) || 0;
