@@ -736,32 +736,46 @@ console.log("Current user ID:", userId);
     // (These were duplicates and have been removed)
 
     weightInput.addEventListener('input', () => {
-      // Sanitize the input by removing non-numeric characters except the decimal point
-      weightInput.value = weightInput.value.replace(/[^\d.]/g, '');
+  // Sanitize the input by removing non-numeric characters except the decimal point
+  weightInput.value = weightInput.value.replace(/[^\d.]/g, '');
 
-      // Prevent multiple decimal points in the input
-      const parts = weightInput.value.split('.');
-      if (parts.length > 2) {
-        weightInput.value = parts[0] + '.' + parts[1];
+  // Prevent multiple decimal points in the input
+  const parts = weightInput.value.split('.');
+  if (parts.length > 2) {
+    weightInput.value = parts[0] + '.' + parts[1];
+  }
+
+  // Parse and round the input value
+  let weightValue = parseFloat(weightInput.value);
+
+  // If the input is invalid or empty, set weightValue to NaN for further checks
+  if (isNaN(weightValue)) {
+    weightValue = 0; // Default to 0 for price calculation purposes
+    weightInput.value = ''; // Clear invalid input
+  } else {
+    weightInput.value = weightValue.toFixed(1); // Ensure 1 decimal place
+  }
+
+  // Check if the weight exceeds the maximum allowed for "parcel" shipping type
+  const shippingType = shippingTypeSelect.value;
+  const weightWarning = document.getElementById('weightWarning');
+
+  if (weightWarning) {
+    if (shippingType === 'parcel' && weightValue > 50) {
+      weightWarning.classList.remove('hidden'); // Show the warning label
+      quoteButton.disabled = true; // Disable the button
+      quoteButton.classList.add('opacity-50', 'cursor-not-allowed');
+    } else {
+      weightWarning.classList.add('hidden'); // Hide the warning label
+      // Only update the price if the input is valid
+      if (!isNaN(weightValue) && weightValue > 0) {
+        updatePrice();
+        quoteButton.disabled = false; // Enable the button
+        quoteButton.classList.remove('opacity-50', 'cursor-not-allowed');
       }
-
-      // Check if the weight exceeds the maximum allowed for "parcel" shipping type
-      const shippingType = shippingTypeSelect.value;
-      const weightWarning = document.getElementById('weightWarning');
-      const weightValue = parseFloat(weightInput.value) || 0;
-
-      // Ensure weightWarning is not null before interacting with it
-      if (weightWarning) {
-        if (shippingType === 'parcel' && weightValue > 50) {
-          weightWarning.classList.remove('hidden'); // Show the warning label
-          quoteButton.disabled = true; // Disable the button
-          quoteButton.classList.add('opacity-50', 'cursor-not-allowed');
-        } else {
-          weightWarning.classList.add('hidden'); // Hide the warning label
-          updatePrice(); // Ensure price updates correctly
-        }
-      }
-    });
+    }
+  }
+});
 
 
     // Existing functionality
